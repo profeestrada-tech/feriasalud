@@ -1,0 +1,2590 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feria de la Salud Escolar - Circuito Supabase Realtime</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                        clinical: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS CDN (v2) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Dark mode custom overrides */
+        .dark {
+            color-scheme: dark;
+        }
+        .dark body {
+            background-color: #0b1329 !important;
+            color: #e2e8f0 !important;
+        }
+        .dark .bg-white {
+            background-color: #111c38 !important;
+            color: #f1f5f9 !important;
+        }
+        .dark .bg-slate-50 {
+            background-color: #090e1f !important;
+            color: #e2e8f0 !important;
+        }
+        .dark .bg-slate-100 {
+            background-color: #1e293b !important;
+            color: #cbd5e1 !important;
+        }
+        .dark .bg-slate-200 {
+            background-color: #334155 !important;
+            color: #cbd5e1 !important;
+        }
+        .dark .text-slate-800, .dark .text-slate-700 {
+            color: #f1f5f9 !important;
+        }
+        .dark .text-slate-600, .dark .text-slate-500 {
+            color: #94a3b8 !important;
+        }
+        .dark .text-slate-400 {
+            color: #64748b !important;
+        }
+        .dark .border-slate-100, .dark .border-slate-200, .dark .border-slate-200\/80, .dark .border-slate-300 {
+            border-color: #1e2d4d !important;
+        }
+        .dark input, .dark select, .dark textarea {
+            background-color: #080d1c !important;
+            color: #f8fafc !important;
+            border-color: #1e2d4d !important;
+        }
+        .dark input:focus, .dark select:focus, .dark textarea:focus {
+            border-color: #10b981 !important;
+        }
+        .dark footer {
+            background-color: #080e1e !important;
+            border-color: #1e2d4d !important;
+        }
+        .dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+            border-color: #1e2d4d !important;
+        }
+        .dark .hover\:bg-slate-50:hover {
+            background-color: #162444 !important;
+        }
+        .dark #modal-preview-content {
+            background-color: #080d1c !important;
+        }
+
+        /* Subtle scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #0b1329;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Stand Card Active Glow */
+        .terminal-active {
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.4), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Print Specific Layout - ALWAYS REMAINS CRISP WHITE WITH BLACK TEXT */
+        #printable-report-container {
+            display: none;
+        }
+
+        @media print {
+            /* Hide the complete web application wrapper */
+            #app-root,
+            .no-print,
+            header,
+            footer,
+            .stand-screen,
+            #modal-station,
+            #modal-config,
+            #modal-sql,
+            #app-toast {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Reset body for printing */
+            body, html {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                overflow: visible !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Unhide and format the print container */
+            #printable-report-container {
+                display: block !important;
+                visibility: visible !important;
+                position: static !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+                overflow: visible !important;
+            }
+
+            #printable-report-container * {
+                visibility: visible !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            @page {
+                size: letter portrait;
+                margin: 10mm;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800 antialiased transition-colors duration-300">
+
+    <!-- APP ROOT WRAPPER (HIDDEN ON PRINT) -->
+    <div id="app-root" class="flex flex-col flex-grow w-full">
+
+        <!-- TOP APP BAR -->
+        <header class="bg-gradient-to-r from-slate-900 via-teal-950 to-slate-950 text-white shadow-lg sticky top-0 z-40 no-print border-b border-emerald-900/40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 text-lg shadow-inner">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-base sm:text-lg font-black tracking-tight leading-none text-white">Feria de la Salud Escolar</h1>
+                            <span id="header-connection-status" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/40">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 mr-1 animate-pulse"></span> Modo Local
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-emerald-200/80 font-medium mt-0.5">Circuito Multiterminal Supabase • 7 Estaciones</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <!-- DARK / LIGHT MODE TOGGLE BUTTON -->
+                    <button id="theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema claro / oscuro" class="p-2 bg-slate-800/90 hover:bg-slate-700 text-amber-300 hover:text-amber-200 rounded-xl text-xs font-bold transition flex items-center justify-center border border-slate-700 shadow-sm w-9 h-9">
+                        <i id="theme-toggle-icon" class="fa-solid fa-moon"></i>
+                    </button>
+
+                    <button onclick="openStationModal()" class="px-3 py-1.5 bg-emerald-600/90 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm border border-emerald-400/30">
+                        <i class="fa-solid fa-arrows-split-up-and-left"></i>
+                        <span id="current-station-label">Stand 1: Admisión</span>
+                    </button>
+                    <button onclick="openSqlModal()" class="px-2.5 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-emerald-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-700">
+                        <i class="fa-solid fa-database"></i>
+                        <span class="hidden sm:inline">Script SQL</span>
+                    </button>
+                    <button onclick="openConfigModal()" class="px-2.5 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-700">
+                        <i class="fa-solid fa-gear"></i>
+                        <span class="hidden lg:inline">Conexión</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Connection Notice Banner (when offline or missing keys) -->
+            <div id="setup-alert-banner" class="bg-amber-600/90 text-white px-4 py-2 text-xs font-medium text-center flex items-center justify-center gap-2">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>Supabase no está conectado todavía. Los cambios se guardarán solo de manera local temporal.</span>
+                <button onclick="openConfigModal()" class="underline font-bold hover:text-amber-100 ml-2">Configurar ahora</button>
+                <span class="text-amber-200">|</span>
+                <button onclick="openSqlModal()" class="underline font-bold hover:text-amber-100">Ver script SQL para crear la tabla</button>
+            </div>
+        </header>
+
+        <!-- MAIN APP WRAPPER -->
+        <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+            <!-- ACTIVE STATION INDICATOR BANNER -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div id="station-icon-box" class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl border border-emerald-500/20 shadow-inner">
+                        <i class="fa-solid fa-id-card-clip"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span id="station-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                Stand 1 de 7
+                            </span>
+                            <span class="text-xs text-slate-400 font-medium">Terminal activa</span>
+                        </div>
+                        <h2 id="station-title" class="text-lg sm:text-xl font-black text-slate-800 tracking-tight mt-0.5">Stand 1: Admisión e Inscripción</h2>
+                        <p id="station-desc" class="text-xs text-slate-500">Inscribe los datos generales del docente y abre su ficha médica en Supabase.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 self-end md:self-center">
+                    <div class="bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200 text-center">
+                        <div class="text-[10px] uppercase font-bold text-slate-400">Docentes en Circuito</div>
+                        <div id="total-patients-count" class="text-lg font-black text-slate-700">0</div>
+                    </div>
+                    <button onclick="setStation('dashboard')" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-300">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Tablero General</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SEARCH / SELECT PARTICIPANT BAR (Visible in Stands 2 to 7) -->
+            <div id="participant-picker-card" class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <label for="patient-select" class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-check text-emerald-600"></i> Seleccionar Docente en este Stand:
+                    </label>
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" oninput="filterPatientSelect(this.value)" placeholder="Buscar por nombre o C.C..." class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+
+                <select id="patient-select" onchange="onSelectPatient(this.value)" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-500">
+                    <option value="">-- Selecciona el docente que acaba de llegar al stand --</option>
+                </select>
+
+                <!-- ACTIVE SELECTED PARTICIPANT RIBBON -->
+                <div id="selected-patient-ribbon" class="hidden p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div>
+                            <span id="ribbon-name" class="font-bold text-slate-800">Docente Seleccionado</span>
+                            <span id="ribbon-doc" class="text-slate-500 ml-1.5 font-medium">C.C: ---</span>
+                            <span id="ribbon-demographics" class="text-slate-500 ml-2 hidden sm:inline">Edad: -- • Sexo: --</span>
+                        </div>
+                    </div>
+                    <div id="ribbon-stands-progress" class="flex items-center gap-1 font-bold text-[10px]">
+                        <!-- Badges rendered in realtime -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- STAND 1: ADMISIÓN E INSCRIPCIÓN           -->
+            <!-- ========================================== -->
+            <section id="pane-stand-1" class="stand-screen bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 space-y-6">
+                <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-id-card-clip text-emerald-600"></i> Stand 1: Admisión e Inscripción del Docente
+                        </h3>
+                        <p class="text-xs text-slate-500">Registra al docente por primera vez para asignarle su turno e iniciar la ruta médica.</p>
+                    </div>
+                    <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                        Estación 1
+                    </span>
+                </div>
+
+                <form id="form-stand-1" onsubmit="handleSaveStand1(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-700">Documento de Identidad (C.C.) *</label>
+                            <input type="text" id="s1-doc" required placeholder="Ej: 1067894521" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div class="space-y-1 md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-700">Nombre Completo del Docente *</label>
+                            <input type="text" id="s1-name" required placeholder="Ej: Lic. Carlos Andrés Martínez Pérez" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-700">Edad (Años) *</label>
+                            <input type="number" id="s1-age" required min="18" max="95" placeholder="Ej: 42" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-700">Sexo Biológico *</label>
+                            <select id="s1-gender" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-emerald-500">
+                                <option value="Masculino">Masculino</option>
+                                <option value="Femenino">Femenino</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-700">Área / Asignatura (Opcional)</label>
+                            <input type="text" id="s1-area" placeholder="Ej: Ciencias Naturales, Matemáticas, Primaria..." class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-200 flex justify-end">
+                        <button type="submit" id="btn-save-s1" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-md transition flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>Inscribir Docente y Enviar al Stand 2</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+        <!-- ========================================== -->
+        <!-- STAND 2: TEMPERATURA CORPORAL              -->
+        <!-- ========================================== -->
+        <section id="pane-stand-2" class="stand-screen hidden bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 space-y-6">
+            <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-temperature-half text-rose-500"></i> Stand 2: Temperatura Corporal
+                    </h3>
+                    <p class="text-xs text-slate-500">Toma la temperatura con termómetro calibrado en la región frontal o timpánica.</p>
+                </div>
+                <span class="text-xs font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
+                    Estación 2
+                </span>
+            </div>
+
+            <form id="form-stand-2" onsubmit="handleSaveStand2(event)" class="space-y-6">
+                <!-- Temperature Input & Live Diagnostic -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <div class="space-y-3">
+                        <label class="block text-sm font-bold text-slate-800">
+                            Temperatura Corporal Registrada (°C) *
+                        </label>
+                        <div class="relative">
+                            <input type="number" step="0.1" min="30" max="45" id="s2-temp" required oninput="evalLiveTemp()" placeholder="Ej: 36.6" class="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-300 rounded-xl text-2xl font-black text-slate-800 focus:ring-2 focus:ring-rose-500">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">°C</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500">Rango normal de referencia: 35.5 °C a 37.2 °C (Normotermia).</p>
+                    </div>
+
+                    <div id="s2-diagnostic-card" class="p-5 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1.5">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Diagnóstico en Tiempo Real</span>
+                        <div id="s2-eval-status" class="text-2xl font-black text-slate-400">---</div>
+                        <p id="s2-eval-desc" class="text-xs text-slate-500">Ingresa la temperatura para obtener el estado fisiológico.</p>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 flex justify-end">
+                    <button type="submit" id="btn-save-s2" class="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-bold shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Guardar Temperatura y Enviar al Stand 3</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- STAND 3: OXIMETRÍA Y PULSO                -->
+        <!-- ========================================== -->
+        <section id="pane-stand-3" class="stand-screen hidden bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 space-y-6">
+            <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-heart-pulse text-indigo-600"></i> Stand 3: Oximetría de Pulso (% SpO2) y Frecuencia Cardíaca
+                    </h3>
+                    <p class="text-xs text-slate-500">Coloca el oxímetro en el dedo índice con la mano relajada y tibia.</p>
+                </div>
+                <span class="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200">
+                    Estación 3
+                </span>
+            </div>
+
+            <form id="form-stand-3" onsubmit="handleSaveStand3(event)" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- SpO2 -->
+                    <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                        <label class="block text-sm font-bold text-slate-800">Saturación de Oxígeno (SpO2 %):</label>
+                        <div class="relative">
+                            <input type="number" min="50" max="100" id="s3-spo2" required oninput="evalLiveOxi()" placeholder="Ej: 98" class="w-full pl-4 pr-12 py-3 bg-white border border-slate-300 rounded-xl text-2xl font-black text-slate-800 focus:ring-2 focus:ring-indigo-500">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-lg">%</span>
+                        </div>
+                        <div id="s3-eval-spo2" class="py-1 px-3 rounded-lg text-xs font-bold text-center bg-slate-200 text-slate-600">
+                            Esperando medición
+                        </div>
+                    </div>
+
+                    <!-- Heart Rate -->
+                    <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                        <label class="block text-sm font-bold text-slate-800">Frecuencia Cardíaca / Pulso (LPM):</label>
+                        <div class="relative">
+                            <input type="number" min="30" max="220" id="s3-pulse" required oninput="evalLiveOxi()" placeholder="Ej: 72" class="w-full pl-4 pr-16 py-3 bg-white border border-slate-300 rounded-xl text-2xl font-black text-slate-800 focus:ring-2 focus:ring-indigo-500">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">LPM</span>
+                        </div>
+                        <div id="s3-eval-pulse" class="py-1 px-3 rounded-lg text-xs font-bold text-center bg-slate-200 text-slate-600">
+                            Esperando medición
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 flex justify-end">
+                    <button type="submit" id="btn-save-s3" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Guardar Oximetría y Enviar al Stand 4</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- STAND 4: PESO, ALTURA E IMC                -->
+        <!-- ========================================== -->
+        <section id="pane-stand-4" class="stand-screen hidden bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 space-y-6">
+            <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-weight-scale text-teal-600"></i> Stand 4: Antropometría (Peso, Talla e IMC)
+                    </h3>
+                    <p class="text-xs text-slate-500">Cálculo reactivo automático del Índice de Masa Corporal bajo estándares de la OMS.</p>
+                </div>
+                <span class="text-xs font-bold text-teal-700 bg-teal-50 px-3 py-1 rounded-full border border-teal-200">
+                    Estación 4
+                </span>
+            </div>
+
+            <form id="form-stand-4" onsubmit="handleSaveStand4(event)" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Peso en Kilogramos (kg) *</label>
+                        <div class="relative">
+                            <input type="number" step="0.1" min="25" max="250" id="s4-weight" required oninput="evalLiveBmi()" placeholder="Ej: 72.5" class="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-300 rounded-xl text-xl font-bold text-slate-800 focus:ring-2 focus:ring-teal-500">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">kg</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Estatura / Talla en Centímetros (cm) *</label>
+                        <div class="relative">
+                            <input type="number" step="0.5" min="100" max="240" id="s4-height" required oninput="evalLiveBmi()" placeholder="Ej: 168" class="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-300 rounded-xl text-xl font-bold text-slate-800 focus:ring-2 focus:ring-teal-500">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">cm</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">IMC Calculado (kg/m²)</label>
+                        <div id="s4-bmi-val" class="w-full py-3 px-4 bg-slate-100 rounded-xl font-black text-slate-800 text-xl border border-slate-300 flex items-center justify-between">
+                            <span>--</span>
+                            <span class="text-xs font-normal text-slate-400">kg/m²</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="s4-bmi-card" class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Clasificación Nutricional OMS</span>
+                        <h4 id="s4-eval-status" class="text-lg font-black text-slate-500">Ingresa peso y talla</h4>
+                    </div>
+                    <div id="s4-bmi-icon" class="text-3xl text-slate-300">
+                        <i class="fa-solid fa-child"></i>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 flex justify-end">
+                    <button type="submit" id="btn-save-stand-4" class="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Guardar Antropometría y Enviar al Stand 5</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- STAND 5: PRESIÓN ARTERIAL                 -->
+        <!-- ========================================== -->
+        <section id="pane-stand-5" class="stand-screen hidden bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 space-y-6">
+            <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-gauge-high text-cyan-600"></i> Stand 5: Presión Arterial
+                    </h3>
+                    <p class="text-xs text-slate-500">Medición con tensiómetro de brazo tras 5 minutos de reposo.</p>
+                </div>
+                <span class="text-xs font-bold text-cyan-700 bg-cyan-50 px-3 py-1 rounded-full border border-cyan-200">
+                    Estación 5
+                </span>
+            </div>
+
+            <form id="form-stand-5" onsubmit="handleSaveStand5(event)" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-800 mb-1">Presión Sistólica (Alta) - mmHg *</label>
+                        <div class="relative">
+                            <input type="number" min="50" max="260" id="s5-sys" required oninput="evalLiveBp()" placeholder="Ej: 118" class="w-full pl-4 pr-16 py-3 bg-slate-50 border border-slate-300 rounded-xl text-2xl font-black text-slate-800 focus:ring-2 focus:ring-cyan-500">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">mmHg</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Normal: &lt; 120 mmHg</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-800 mb-1">Presión Diastólica (Baja) - mmHg *</label>
+                        <div class="relative">
+                            <input type="number" min="30" max="160" id="s5-dia" required oninput="evalLiveBp()" placeholder="Ej: 78" class="w-full pl-4 pr-16 py-3 bg-slate-50 border border-slate-300 rounded-xl text-2xl font-black text-slate-800 focus:ring-2 focus:ring-cyan-500">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">mmHg</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Normal: &lt; 80 mmHg</p>
+                    </div>
+                </div>
+
+                <div id="s5-bp-card" class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Clasificación Cardiovascular (AHA / ACC)</span>
+                        <h4 id="s5-eval-status" class="text-lg font-black text-slate-500">Ingresa sistólica y diastólica</h4>
+                    </div>
+                    <div id="s5-bp-icon" class="text-3xl text-slate-300">
+                        <i class="fa-solid fa-heart"></i>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 flex justify-end">
+                    <button type="submit" id="btn-save-stand-5" class="px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-sm font-bold shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Guardar Presión y Enviar al Stand 6</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- STAND 6: GLUCOMETRÍA                      -->
+        <!-- ========================================== -->
+        <section id="pane-stand-6" class="stand-screen hidden bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 space-y-6">
+            <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-droplet text-amber-500"></i> Stand 6: Glucometría Capilar
+                    </h3>
+                    <p class="text-xs text-slate-500">Punción con lanceta estéril y lectura con tira reactiva.</p>
+                </div>
+                <span class="text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                    Estación 6
+                </span>
+            </div>
+
+            <form id="form-stand-6" onsubmit="handleSaveStand6(event)" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Condición de la toma *</label>
+                        <select id="s6-state" required onchange="evalLiveGlucose()" class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800 focus:ring-2 focus:ring-amber-500">
+                            <option value="ayunas">Ayuno (Más de 8 horas sin ingesta calórica)</option>
+                            <option value="postprandial">Postprandial (Tras desayuno, almuerzo o refrigerio)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Nivel de Glucosa en Sangre (mg/dL) *</label>
+                        <div class="relative">
+                            <input type="number" min="20" max="600" id="s6-glucose" required oninput="evalLiveGlucose()" placeholder="Ej: 95" class="w-full pl-4 pr-16 py-3 bg-slate-50 border border-slate-300 rounded-xl text-2xl font-black text-slate-800 focus:ring-2 focus:ring-amber-500">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">mg/dL</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="s6-glucose-card" class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Interpretación Glucémica</span>
+                        <h4 id="s6-eval-status" class="text-lg font-black text-slate-500">Ingresa el valor de glucosa</h4>
+                    </div>
+                    <div id="s6-glucose-icon" class="text-3xl text-slate-300">
+                        <i class="fa-solid fa-cube"></i>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 flex justify-end">
+                    <button type="submit" id="btn-save-stand-6" class="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-bold shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Guardar Glucometría y Remitir al Stand 7</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- STAND 7: CONSOLIDACIÓN Y ENTREGA           -->
+        <!-- ========================================== -->
+        <section id="pane-stand-7" class="stand-screen hidden space-y-6">
+            <!-- Header with Quick Action to Print -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <span class="text-xs font-black uppercase text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-200">
+                        Estación Final de Entrega (Stand 7)
+                    </span>
+                    <h3 class="text-xl font-black text-slate-800 mt-1 flex items-center gap-2">
+                        <i class="fa-solid fa-file-medical text-indigo-600"></i> Stand 7: Auditoría y Emisión de Carnet Escolar
+                    </h3>
+                    <p class="text-xs text-slate-500">Verifica que los stands del 2 al 6 estén completos antes de imprimir o exportar a PDF.</p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="previewCarnetModal()" class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 border border-slate-300">
+                        <i class="fa-solid fa-eye"></i>
+                        <span>Vista Previa</span>
+                    </button>
+                    <button onclick="triggerPrintCarnet()" id="btn-print-carnet" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-print"></i>
+                        <span>Imprimir Carnet / PDF</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Semaphore Grid for the Selected Patient (Stands 2 to 6) -->
+            <div id="s7-semaphore-container" class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                <!-- 5 Interactive stand review cards -->
+            </div>
+
+            <!-- Final Observations and Feedback from Students -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-xs font-bold text-emerald-900 uppercase tracking-wide flex items-center gap-1.5 mb-2">
+                            <i class="fa-solid fa-heart-circle-check text-emerald-600"></i> Recomendaciones Automatizadas:
+                        </h4>
+                        <div id="s7-auto-recs" class="bg-emerald-50/60 p-3.5 rounded-xl border border-emerald-100 text-xs text-slate-700 space-y-1.5 leading-relaxed">
+                            Selecciona un docente para ver las alertas y sugerencias del circuito.
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                Observaciones de Entrega y Remisión (Equipo Prevención en Salud - Stand 7):
+                            </label>
+                            <button type="button" onclick="generateAiClinicalImpression()" id="btn-ai-analysis" class="px-2.5 py-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
+                                <span>Analizar con Agente IA</span>
+                            </button>
+                        </div>
+                        <textarea id="s7-final-notes" rows="4" placeholder="Recomendaciones de actividad física, hidratación o sugerencia de cita médica prioritaria..." class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500"></textarea>
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-[10px] text-slate-400 flex items-center gap-1">
+                                <i class="fa-solid fa-robot text-purple-400"></i> El texto generado por IA puede ser editado antes de guardar e imprimir.
+                            </span>
+                            <button onclick="handleSaveStand7Notes()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-floppy-disk"></i> Guardar Observación en Supabase
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Live Queue Table (Docentes esperando Stand 7) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-arrows-spin text-emerald-600"></i> Cola de Docentes en Vivo (Sincronizada vía Supabase)
+                    </h4>
+                    <span class="text-xs text-slate-500">Actualización en tiempo real</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase">
+                                <th class="p-2.5">Docente</th>
+                                <th class="p-2.5 text-center">S2 (Temp)</th>
+                                <th class="p-2.5 text-center">S3 (SpO2/FC)</th>
+                                <th class="p-2.5 text-center">S4 (IMC)</th>
+                                <th class="p-2.5 text-center">S5 (Presión)</th>
+                                <th class="p-2.5 text-center">S6 (Glucosa)</th>
+                                <th class="p-2.5 text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="s7-queue-tbody" class="divide-y divide-slate-100">
+                            <!-- Populated in realtime -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TABLERO GENERAL / DASHBOARD COORDINADOR    -->
+        <!-- ========================================== -->
+        <section id="pane-dashboard" class="stand-screen hidden space-y-6">
+            <!-- Metrics Summary Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Atendidos</p>
+                        <h3 id="dash-total" class="text-2xl sm:text-3xl font-black text-slate-800 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Completados (5/5)</p>
+                        <h3 id="dash-completed" class="text-2xl sm:text-3xl font-black text-emerald-600 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">En Circuito</p>
+                        <h3 id="dash-in-progress" class="text-2xl sm:text-3xl font-black text-amber-600 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-person-walking"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Alertas Médicas</p>
+                        <h3 id="dash-alerts" class="text-2xl sm:text-3xl font-black text-rose-600 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Master Table of All Records -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-emerald-600"></i> Registro Consolidado de la Feria Escolar (7 Stands)
+                    </h3>
+                    <div class="flex items-center gap-2">
+                        <button onclick="downloadCSVExport()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition flex items-center gap-1.5 border border-slate-300">
+                            <i class="fa-solid fa-file-excel text-emerald-600"></i> Exportar CSV
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase">
+                                <th class="p-3">Docente</th>
+                                <th class="p-3 text-center">S2 Temp</th>
+                                <th class="p-3 text-center">S3 SpO2/Pulso</th>
+                                <th class="p-3 text-center">S4 IMC</th>
+                                <th class="p-3 text-center">S5 Presión</th>
+                                <th class="p-3 text-center">S6 Glucosa</th>
+                                <th class="p-3 text-center">Estado</th>
+                                <th class="p-3 text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dash-master-tbody" class="divide-y divide-slate-100">
+                            <!-- Populated in realtime -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="bg-white border-t border-slate-200 py-4 px-6 text-center text-xs text-slate-500 no-print">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+                <p>Feria de la Salud Escolar • Circuito de 7 Stands Pedagógicos Supabase</p>
+                <p class="font-medium">Coordinado y desarrollado para el proyecto de salud por <span class="font-bold text-emerald-700 dark:text-emerald-400">@resma</span></p>
+            </div>
+        </footer>
+
+    </div>
+    <!-- END OF #app-root -->
+
+    <!-- ======================================================== -->
+    <!-- MODAL 4: MODAL DE VISTA PREVIA DEL CARNET EN PANTALLA    -->
+    <!-- ======================================================== -->
+    <div id="modal-preview" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-5 no-print">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+            <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice text-emerald-400"></i>
+                    <h3 class="font-bold text-sm">Vista Previa del Carnet de Salud Escolar</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="triggerPrintCarnet()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-print"></i> Imprimir / Guardar en PDF
+                    </button>
+                    <button onclick="closePreviewModal()" class="text-slate-400 hover:text-white px-2 py-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="modal-preview-content" class="p-6 overflow-y-auto bg-slate-100 flex justify-center">
+                <!-- Injected preview copy -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 1: SELECTOR DE TERMINAL / STAND LOCK               -->
+    <!-- ======================================================== -->
+    <div id="modal-station" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-arrows-split-up-and-left text-emerald-600 text-lg"></i>
+                    <h3 class="font-bold text-base text-slate-800">Seleccionar Rol / Stand de esta Computadora</h3>
+                </div>
+                <button onclick="closeStationModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500">
+                Selecciona la estación que operará este dispositivo. El dispositivo quedará configurado para ingresar las mediciones de esa estación.
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <button onclick="chooseStation('1')" class="p-3 text-left rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 transition">
+                    <div class="font-extrabold text-xs text-emerald-700">Stand 1: Admisión</div>
+                    <div class="text-[11px] text-slate-500">Inscripción y datos generales</div>
+                </button>
+                <button onclick="chooseStation('2')" class="p-3 text-left rounded-xl border border-slate-200 hover:border-rose-500 hover:bg-rose-50/50 transition">
+                    <div class="font-extrabold text-xs text-rose-700">Stand 2: Temperatura</div>
+                    <div class="text-[11px] text-slate-500">Termometría en °C</div>
+                </button>
+                <button onclick="chooseStation('3')" class="p-3 text-left rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition">
+                    <div class="font-extrabold text-xs text-indigo-700">Stand 3: Oximetría y Pulso</div>
+                    <div class="text-[11px] text-slate-500">SpO2 y Frecuencia cardíaca</div>
+                </button>
+                <button onclick="chooseStation('4')" class="p-3 text-left rounded-xl border border-slate-200 hover:border-teal-500 hover:bg-teal-50/50 transition">
+                    <div class="font-extrabold text-xs text-teal-700">Stand 4: Antropometría</div>
+                    <div class="text-[11px] text-slate-500">Peso, Talla e IMC</div>
+                </button>
+                <button onclick="chooseStation('5')" class="p-3 text-left rounded-xl border border-slate-200 hover:border-cyan-500 hover:bg-cyan-50/50 transition">
+                    <div class="font-extrabold text-xs text-cyan-700">Stand 5: Presión Arterial</div>
+                    <div class="text-[11px] text-slate-500">Sistólica y Diastólica</div>
+                </button>
+                <button onclick="chooseStation('6')" class="p-3 text-left rounded-xl border border-slate-200 hover:border-amber-500 hover:bg-amber-50/50 transition">
+                    <div class="font-extrabold text-xs text-amber-700">Stand 6: Glucometría</div>
+                    <div class="text-[11px] text-slate-500">Glucosa en sangre capilar</div>
+                </button>
+                <button onclick="chooseStation('7')" class="p-3 text-left rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition">
+                    <div class="font-extrabold text-xs text-indigo-700">Stand 7: Auditoría y Carnet</div>
+                    <div class="text-[11px] text-slate-500">Revisión e impresión final</div>
+                </button>
+                <button onclick="chooseStation('dashboard')" class="p-3 text-left rounded-xl border border-slate-200 hover:border-slate-500 hover:bg-slate-100 transition">
+                    <div class="font-extrabold text-xs text-slate-800">Tablero Coordinador</div>
+                    <div class="text-[11px] text-slate-500">Monitoreo general y CSV</div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 2: CONFIGURACIÓN DE SUPABASE                       -->
+    <!-- ======================================================== -->
+    <div id="modal-config" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-cloud text-emerald-600"></i>
+                    <h3 class="font-bold text-base text-slate-800">Configuración de Supabase</h3>
+                </div>
+                <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 leading-relaxed">
+                Ingresa la URL y la Anon Key de tu proyecto en Supabase para sincronizar todas las computadoras en tiempo real.
+            </p>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Project URL:</label>
+                    <input type="text" id="cfg-supabase-url" placeholder="https://tu-proyecto.supabase.co" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Anon Public Key:</label>
+                    <input type="password" id="cfg-supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Gemini API Key (Opcional para IA Stand 7):</label>
+                    <input type="password" id="cfg-gemini-key" placeholder="AIzaSy..." class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-purple-500">
+                    <p class="text-[10px] text-slate-400 mt-1">Si no se ingresa, la app usará automáticamente el motor heurístico clínico experto local.</p>
+                </div>
+            </div>
+            <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                <button onclick="closeConfigModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Cancelar</button>
+                <button onclick="saveSupabaseConfig()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition">Guardar y Conectar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 3: SCRIPT SQL PARA SUPABASE                        -->
+    <!-- ======================================================== -->
+    <div id="modal-sql" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-database text-emerald-600"></i>
+                    <h3 class="font-bold text-base text-slate-800">Script SQL para Supabase</h3>
+                </div>
+                <button onclick="closeSqlModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500">
+                Copia este script y ejecútalo en el <strong>SQL Editor</strong> de tu panel de Supabase para crear la tabla y habilitar la sincronización en tiempo real.
+            </p>
+            <div class="relative">
+                <textarea id="sql-code-box" readonly rows="10" class="w-full p-3 font-mono text-xs bg-slate-900 text-emerald-300 rounded-xl border border-slate-800 select-all"></textarea>
+            </div>
+            <div class="flex justify-between items-center pt-2">
+                <button onclick="copySqlCode()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow">
+                    <i class="fa-solid fa-copy"></i> Copiar Código SQL
+                </button>
+                <button onclick="closeSqlModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PLANTILLA DE IMPRESIÓN OFICIAL (STANDALONE PRINT ROOT)   -->
+    <!-- ======================================================== -->
+    <div id="printable-report-container">
+        <div style="width: 100%; max-width: 760px; margin: 0 auto; color: #0f172a; font-family: 'Inter', sans-serif; font-size: 11px; line-height: 1.35;">
+            
+            <!-- Membrete Escolar Oficial -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2.5px solid #059669; padding-bottom: 8px; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="font-size: 32px; color: #059669; line-height: 1;">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                    </div>
+                    <div>
+                        <h1 style="font-size: 18px; font-weight: 800; text-transform: uppercase; margin: 0; color: #065f46; letter-spacing: -0.3px;">
+                            Colegio San Marcos • Feria de la Salud
+                        </h1>
+                        <p style="font-size: 10.5px; margin: 1px 0 0; color: #475569; font-weight: 600;">
+                            Curso de Prevención en Salud • Circuito de 7 Estaciones Biomédicas
+                        </p>
+                    </div>
+                </div>
+                <div style="text-align: right; font-size: 10px; color: #475569; line-height: 1.3;">
+                    <p style="margin: 0;"><strong>Fecha de Emisión:</strong> <span id="prn-date"></span></p>
+                    <p style="margin: 0;"><strong>Folio:</strong> <span id="prn-folio">#---</span></p>
+                    <p style="margin: 0; color: #059669; font-weight: bold;">Tamizaje Preventivo</p>
+                </div>
+            </div>
+
+            <!-- Datos de Admisión del Docente (Registrados en Stand 1) -->
+            <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px;">
+                <div style="display: grid; grid-template-columns: 2fr 1.2fr 0.8fr 0.8fr 1.2fr; gap: 8px; font-size: 10.5px;">
+                    <div>
+                        <span style="color: #64748b; font-size: 9px; text-transform: uppercase; font-weight: bold; display: block;">Docente Evaluado (Stand 1)</span>
+                        <strong id="prn-name" style="font-size: 12.5px; color: #0f172a;">---</strong>
+                    </div>
+                    <div>
+                        <span style="color: #64748b; font-size: 9px; text-transform: uppercase; font-weight: bold; display: block;">Documento ID (C.C.)</span>
+                        <strong id="prn-doc" style="font-size: 11px;">---</strong>
+                    </div>
+                    <div>
+                        <span style="color: #64748b; font-size: 9px; text-transform: uppercase; font-weight: bold; display: block;">Edad</span>
+                        <strong id="prn-age">-- años</strong>
+                    </div>
+                    <div>
+                        <span style="color: #64748b; font-size: 9px; text-transform: uppercase; font-weight: bold; display: block;">Sexo Biológico</span>
+                        <strong id="prn-gender">--</strong>
+                    </div>
+                    <div>
+                        <span style="color: #64748b; font-size: 9px; text-transform: uppercase; font-weight: bold; display: block;">Área / Asignatura</span>
+                        <strong id="prn-area">General</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Procedimientos Stand por Stand (2 al 6) -->
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 10.5px;">
+                <thead>
+                    <tr style="background-color: #047857; color: white;">
+                        <th style="padding: 6px 8px; text-align: left; border: 1px solid #047857; font-weight: 700;">Estación</th>
+                        <th style="padding: 6px 8px; text-align: left; border: 1px solid #047857; font-weight: 700;">Procedimiento en Salud</th>
+                        <th style="padding: 6px 8px; text-align: center; border: 1px solid #047857; font-weight: 700;">Resultado</th>
+                        <th style="padding: 6px 8px; text-align: center; border: 1px solid #047857; font-weight: 700;">Rango de Referencia</th>
+                        <th style="padding: 6px 8px; text-align: center; border: 1px solid #047857; font-weight: 700;">Clasificación Clínica</th>
+                    </tr>
+                </thead>
+                <tbody id="prn-table-body">
+                    <!-- Filas inyectadas por JS -->
+                </tbody>
+            </table>
+
+            <!-- Consejos y Remisión -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; font-size: 10px; background: #ffffff;">
+                    <strong style="color: #065f46; display: block; margin-bottom: 3px; font-size: 10.5px;">
+                        <i class="fa-solid fa-heart-pulse"></i> Orientaciones Preventivas:
+                    </strong>
+                    <div id="prn-recommendations" style="color: #334155; line-height: 1.4;">
+                        • Mantener hidratación continua y pausas activas durante la jornada académica.
+                    </div>
+                </div>
+                <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; font-size: 10px; background: #ffffff;">
+                    <strong style="color: #065f46; display: block; margin-bottom: 3px; font-size: 10.5px;">
+                        <i class="fa-solid fa-notes-medical"></i> Observaciones Stand 7 (Equipo Estudiantil):
+                    </strong>
+                    <div id="prn-notes" style="color: #334155; line-height: 1.4; font-style: italic;">
+                        Sin observaciones reportadas.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Firmas de Conformidad y Entrega -->
+            <div style="display: flex; justify-content: space-around; margin-top: 30px; margin-bottom: 10px; text-align: center; font-size: 10px;">
+                <div style="width: 220px; border-top: 1.5px solid #64748b; padding-top: 4px;">
+                    <strong style="color: #1e293b; display: block;">Firma del Docente</strong>
+                    <span style="font-size: 9px; color: #64748b;">Recibido a conformidad</span>
+                </div>
+                <div style="width: 220px; border-top: 1.5px solid #64748b; padding-top: 4px;">
+                    <strong style="color: #1e293b; display: block;">Equipo Estudiantes Prevención</strong>
+                    <span style="font-size: 9px; color: #64748b;">Stand 7 • Auditoría y Entrega</span>
+                </div>
+            </div>
+
+            <!-- Pie pedagógico institucional -->
+            <div style="margin-top: 18px; text-align: center; font-size: 8.5px; color: #64748b; border-top: 1px dashed #cbd5e1; padding-top: 5px;">
+                Tamizaje pedagógico preventivo escolar • Proyecto de Prevención en Salud • Coordinación pedagógica: <strong>@resma</strong>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SCRIPT DE LÓGICA PRINCIPAL -->
+    <script>
+        // SQL Migration script definition for the Help Modal
+        const SQL_SETUP_SCRIPT = `-- 1. Crear tabla principal para la Feria de la Salud (Circuito de 7 Stands)
+CREATE TABLE IF NOT EXISTS public.feria_pacientes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    
+    -- Stand 1: Admisión y Demografía
+    documento TEXT UNIQUE NOT NULL,
+    nombre_docente TEXT NOT NULL,
+    edad INTEGER NOT NULL,
+    sexo TEXT NOT NULL,
+    area TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    
+    -- Stand 2: Temperatura Corporal
+    temperatura NUMERIC(4,1),
+    estado_temperatura TEXT,
+    
+    -- Stand 3: Oximetría y Pulso
+    oximetria INTEGER,
+    frecuencia_cardiaca INTEGER,
+    estado_oxigeno TEXT,
+    estado_pulso TEXT,
+    
+    -- Stand 4: Antropometría
+    peso NUMERIC(5,1),
+    altura NUMERIC(5,1),
+    imc NUMERIC(4,1),
+    estado_imc TEXT,
+    
+    -- Stand 5: Presión Arterial
+    presion_sistolica INTEGER,
+    presion_diastolica INTEGER,
+    estado_presion TEXT,
+    
+    -- Stand 6: Glucometría
+    glucometria INTEGER,
+    tipo_toma TEXT,
+    estado_glucometria TEXT,
+    
+    -- Stand 7: Cierre y Observaciones
+    observaciones_finales TEXT,
+    completado BOOLEAN DEFAULT FALSE,
+    actualizado_en TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- 2. Habilitar seguridad de nivel de fila (RLS) y permitir lectura/escritura pública
+ALTER TABLE public.feria_pacientes ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Acceso total feria escolar" ON public.feria_pacientes;
+CREATE POLICY "Acceso total feria escolar" 
+ON public.feria_pacientes FOR ALL 
+USING (true) 
+WITH CHECK (true);
+
+-- 3. Habilitar publicación en tiempo real (Supabase Realtime)
+ALTER PUBLICATION supabase_realtime ADD TABLE public.feria_pacientes;`;
+
+        // STATE MANAGER
+        const state = {
+            currentStation: '1', // '1', '2', '3', '4', '5', '6', '7', 'dashboard'
+            supabaseClient: null,
+            supabaseUrl: '',
+            supabaseKey: '',
+            geminiApiKey: '',
+            realtimeChannel: null,
+            patients: [],
+            selectedPatientDoc: null,
+            localBackupKey: 'feria_salud_local_cache_v2',
+            theme: 'dark' // Defaulting to dark mode
+        };
+
+        // CLINICAL CLASSIFIERS
+        const ClinicalRules = {
+            evaluateTemp(t) {
+                if (!t || isNaN(t)) return { status: 'Sin datos', color: 'slate' };
+                const val = parseFloat(t);
+                if (val < 35.5) return { status: 'Hipotermia (<35.5°C)', color: 'blue', alert: true };
+                if (val <= 37.2) return { status: 'Normotermia (Normal)', color: 'emerald', alert: false };
+                if (val <= 37.9) return { status: 'Febrícula (37.3 - 37.9°C)', color: 'amber', alert: true };
+                return { status: 'Fiebre (≥ 38.0°C)', color: 'rose', alert: true };
+            },
+            evaluateSpO2(ox) {
+                if (!ox || isNaN(ox)) return { status: 'Sin datos', color: 'slate' };
+                const val = parseInt(ox);
+                if (val >= 95) return { status: 'Óptima (95-100%)', color: 'emerald', alert: false };
+                if (val >= 90) return { status: 'Hipoxemia Leve (90-94%)', color: 'amber', alert: true };
+                return { status: 'Hipoxemia Severa (<90%)', color: 'rose', alert: true };
+            },
+            evaluatePulse(p) {
+                if (!p || isNaN(p)) return { status: 'Sin datos', color: 'slate' };
+                const val = parseInt(p);
+                if (val < 60) return { status: 'Bradicardia (<60 lpm)', color: 'amber', alert: true };
+                if (val <= 100) return { status: 'Normocardia (Normal)', color: 'emerald', alert: false };
+                return { status: 'Taquicardia (>100 lpm)', color: 'rose', alert: true };
+            },
+            evaluateBMI(w, hCm) {
+                if (!w || !hCm || isNaN(w) || isNaN(hCm)) return null;
+                const hM = parseFloat(hCm) / 100;
+                if (hM <= 0) return null;
+                const bmi = parseFloat((w / (hM * hM)).toFixed(1));
+                if (bmi < 18.5) return { bmi, status: 'Bajo Peso', color: 'blue', alert: true };
+                if (bmi <= 24.9) return { bmi, status: 'Normopeso (Saludable)', color: 'emerald', alert: false };
+                if (bmi <= 29.9) return { bmi, status: 'Sobrepeso', color: 'amber', alert: true };
+                if (bmi <= 34.9) return { bmi, status: 'Obesidad Grado I', color: 'rose', alert: true };
+                if (bmi <= 39.9) return { bmi, status: 'Obesidad Grado II', color: 'rose', alert: true };
+                return { bmi, status: 'Obesidad Grado III', color: 'rose', alert: true };
+            },
+            evaluateBP(sys, dia) {
+                if (!sys || !dia || isNaN(sys) || isNaN(dia)) return null;
+                const s = parseInt(sys);
+                const d = parseInt(dia);
+                if (s > 180 || d > 120) return { status: 'Crisis Hipertensiva', color: 'rose', alert: true };
+                if (s >= 140 || d >= 90) return { status: 'Hipertensión Grado 2', color: 'rose', alert: true };
+                if ((s >= 130 && s <= 139) || (d >= 80 && d <= 89)) return { status: 'Hipertensión Grado 1', color: 'amber', alert: true };
+                if (s >= 120 && s <= 129 && d < 80) return { status: 'Presión Elevada', color: 'amber', alert: true };
+                if (s < 90 || d < 60) return { status: 'Hipotensión Arterial', color: 'blue', alert: true };
+                return { status: 'Normal (<120 / <80 mmHg)', color: 'emerald', alert: false };
+            },
+            evaluateGlucose(g, state) {
+                if (!g || isNaN(g)) return null;
+                const val = parseFloat(g);
+                if (val < 70) return { status: 'Hipoglucemia (<70 mg/dL)', color: 'rose', alert: true };
+                if (state === 'ayunas') {
+                    if (val <= 99) return { status: 'Normal en Ayunas (70-99)', color: 'emerald', alert: false };
+                    if (val <= 125) return { status: 'Prediabetes (100-125 mg/dL)', color: 'amber', alert: true };
+                    return { status: 'Elevada (≥126 mg/dL)', color: 'rose', alert: true };
+                } else {
+                    if (val < 140) return { status: 'Normal Postprandial (<140)', color: 'emerald', alert: false };
+                    if (val <= 199) return { status: 'Tolerancia Alterada (140-199)', color: 'amber', alert: true };
+                    return { status: 'Elevada Postprandial (≥200)', color: 'rose', alert: true };
+                }
+            }
+        };
+
+        // LIFECYCLE & INITIALIZATION
+        window.addEventListener('DOMContentLoaded', () => {
+            // Initialize Theme (Dark / Light)
+            initTheme();
+
+            // Load saved terminal configuration
+            const savedStation = localStorage.getItem('feria_salud_active_station') || '1';
+            state.currentStation = savedStation;
+
+            // Load saved Supabase & Gemini credentials
+            state.supabaseUrl = localStorage.getItem('feria_salud_sp_url') || '';
+            state.supabaseKey = localStorage.getItem('feria_salud_sp_key') || '';
+            state.geminiApiKey = localStorage.getItem('feria_salud_gemini_key') || '';
+
+            const sqlBox = document.getElementById('sql-code-box');
+            if (sqlBox) {
+                sqlBox.value = SQL_SETUP_SCRIPT;
+            }
+
+            if (state.supabaseUrl && state.supabaseKey) {
+                initSupabaseClient();
+            } else {
+                loadLocalCache();
+                updateUIState();
+            }
+
+            // Sync visual terminal display
+            setStation(state.currentStation);
+        });
+
+        // THEME MANAGEMENT (DARK / LIGHT MODE)
+        function initTheme() {
+            const savedTheme = localStorage.getItem('feria_salud_theme') || 'dark';
+            applyTheme(savedTheme);
+        }
+
+        function toggleTheme() {
+            const nextTheme = state.theme === 'dark' ? 'light' : 'dark';
+            applyTheme(nextTheme);
+        }
+
+        function applyTheme(theme) {
+            state.theme = theme;
+            localStorage.setItem('feria_salud_theme', theme);
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-toggle-icon');
+
+            if (theme === 'dark') {
+                html.classList.add('dark');
+                if (icon) {
+                    icon.className = 'fa-solid fa-sun text-amber-300';
+                }
+            } else {
+                html.classList.remove('dark');
+                if (icon) {
+                    icon.className = 'fa-solid fa-moon text-slate-300';
+                }
+            }
+        }
+
+        // SUPABASE CONNECTION & REALTIME SUBSCRIPTION
+        function initSupabaseClient() {
+            try {
+                if (window.supabase) {
+                    state.supabaseClient = window.supabase.createClient(state.supabaseUrl, state.supabaseKey);
+                    
+                    const statusBadge = document.getElementById('header-connection-status');
+                    if (statusBadge) {
+                        statusBadge.innerHTML = `
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span> Supabase Conectado
+                        `;
+                        statusBadge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40';
+                    }
+                    const alertBanner = document.getElementById('setup-alert-banner');
+                    if (alertBanner) alertBanner.classList.add('hidden');
+
+                    // Fetch initial data
+                    fetchSupabasePatients();
+
+                    // Setup WebSocket Realtime Channel
+                    setupRealtimeSubscription();
+                } else {
+                    console.warn("Supabase library not loaded yet.");
+                    loadLocalCache();
+                }
+            } catch (err) {
+                console.error("Error creating Supabase client:", err);
+                showToast("No se pudo conectar a Supabase. Verifica la URL y la Key.", "warning");
+                loadLocalCache();
+            }
+        }
+
+        async function fetchSupabasePatients() {
+            if (!state.supabaseClient) return;
+            try {
+                const { data, error } = await state.supabaseClient
+                    .from('feria_pacientes')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error("Error fetching patients:", error);
+                    loadLocalCache();
+                } else if (data) {
+                    state.patients = data;
+                    saveLocalCache();
+                    updateUIState();
+                }
+            } catch (e) {
+                console.error("Network error fetching Supabase:", e);
+                loadLocalCache();
+            }
+        }
+
+        function setupRealtimeSubscription() {
+            if (!state.supabaseClient) return;
+
+            // Remove previous channel if exists
+            if (state.realtimeChannel) {
+                state.supabaseClient.removeChannel(state.realtimeChannel);
+            }
+
+            state.realtimeChannel = state.supabaseClient
+                .channel('cambios-feria-colegio')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'feria_pacientes' }, payload => {
+                    handleRealtimeEvent(payload);
+                })
+                .subscribe((status) => {
+                    if (status === 'SUBSCRIBED') {
+                        console.log("Conectado al canal Realtime de Supabase con éxito.");
+                    }
+                });
+        }
+
+        function handleRealtimeEvent(payload) {
+            const { eventType, new: newRecord, old: oldRecord } = payload;
+            playNotificationSound();
+
+            if (eventType === 'INSERT') {
+                state.patients.unshift(newRecord);
+                showToast(`Nuevo docente inscrito: ${newRecord.nombre_docente}`, "info");
+            } else if (eventType === 'UPDATE') {
+                const index = state.patients.findIndex(p => p.documento === newRecord.documento || p.id === newRecord.id);
+                if (index !== -1) {
+                    state.patients[index] = newRecord;
+                } else {
+                    state.patients.unshift(newRecord);
+                }
+                showToast(`Datos actualizados en vivo: ${newRecord.nombre_docente}`, "success");
+            } else if (eventType === 'DELETE') {
+                state.patients = state.patients.filter(p => p.id !== oldRecord.id);
+                showToast(`Registro eliminado del circuito.`, "info");
+            }
+
+            saveLocalCache();
+            updateUIState();
+
+            // Refresh selected patient if affected
+            if (state.selectedPatientDoc) {
+                const current = state.patients.find(p => p.documento === state.selectedPatientDoc);
+                if (current) {
+                    loadSelectedPatientToForm(current);
+                }
+            }
+        }
+
+        function saveLocalCache() {
+            try {
+                localStorage.setItem(state.localBackupKey, JSON.stringify(state.patients));
+            } catch (e) {
+                console.warn("Storage full", e);
+            }
+        }
+
+        function loadLocalCache() {
+            try {
+                const raw = localStorage.getItem(state.localBackupKey);
+                if (raw) {
+                    state.patients = JSON.parse(raw);
+                }
+            } catch (e) {
+                state.patients = [];
+            }
+            updateUIState();
+        }
+
+        // TERMINAL / STAND CONTROLLER (7 STANDS)
+        function setStation(stationKey) {
+            state.currentStation = stationKey;
+            localStorage.setItem('feria_salud_active_station', stationKey);
+
+            // Hide all panes
+            document.querySelectorAll('.stand-screen').forEach(el => el.classList.add('hidden'));
+
+            const titles = {
+                '1': { title: 'Stand 1: Admisión y Registro', desc: 'Inscribe los datos demográficos del docente y abre su ficha médica.', icon: 'fa-id-card-clip', color: 'emerald' },
+                '2': { title: 'Stand 2: Temperatura Corporal', desc: 'Registro de la temperatura en °C y clasificación fisiológica.', icon: 'fa-temperature-half', color: 'rose' },
+                '3': { title: 'Stand 3: Oximetría y Pulso', desc: 'Medición de la saturación de oxígeno (% SpO2) y pulsaciones por minuto.', icon: 'fa-heart-pulse', color: 'indigo' },
+                '4': { title: 'Stand 4: Antropometría (IMC)', desc: 'Registro de peso (kg), talla (cm) y clasificación nutricional OMS.', icon: 'fa-weight-scale', color: 'teal' },
+                '5': { title: 'Stand 5: Presión Arterial', desc: 'Registro de presión sistólica y diastólica en mmHg según normas AHA.', icon: 'fa-gauge-high', color: 'cyan' },
+                '6': { title: 'Stand 6: Glucometría Capilar', desc: 'Medición de glucosa en sangre capilar (ayunas o postprandial).', icon: 'fa-droplet', color: 'amber' },
+                '7': { title: 'Stand 7: Auditoría y Carnet Final', desc: 'Auditoría en vivo de los 5 exámenes e impresión del carnet oficial.', icon: 'fa-file-invoice', color: 'indigo' },
+                'dashboard': { title: 'Tablero de Control del Coordinador', desc: 'Visión global de todos los docentes atendidos en la jornada escolar.', icon: 'fa-chart-pie', color: 'slate' }
+            };
+
+            const meta = titles[stationKey] || titles['1'];
+            const labelEl = document.getElementById('current-station-label');
+            if (labelEl) labelEl.innerText = meta.title;
+            const titleEl = document.getElementById('station-title');
+            if (titleEl) titleEl.innerText = meta.title;
+            const descEl = document.getElementById('station-desc');
+            if (descEl) descEl.innerText = meta.desc;
+            const badgeEl = document.getElementById('station-badge');
+            if (badgeEl) badgeEl.innerText = stationKey === 'dashboard' ? 'Modo Coordinador' : `Stand ${stationKey} de 7`;
+            const iconBoxEl = document.getElementById('station-icon-box');
+            if (iconBoxEl) iconBoxEl.innerHTML = `<i class="fa-solid ${meta.icon}"></i>`;
+
+            // Picker visibility: Hide picker in Stand 1 and Dashboard
+            const picker = document.getElementById('participant-picker-card');
+            if (picker) {
+                if (stationKey === '1' || stationKey === 'dashboard') {
+                    picker.classList.add('hidden');
+                } else {
+                    picker.classList.remove('hidden');
+                }
+            }
+
+            // Show active pane
+            const pane = document.getElementById(`pane-stand-${stationKey}`) || document.getElementById('pane-dashboard');
+            if (pane) pane.classList.remove('hidden');
+
+            updateUIState();
+        }
+
+        function chooseStation(key) {
+            setStation(key);
+            closeStationModal();
+            showToast(`Terminal configurada para: Stand ${key}`, 'info');
+        }
+
+        function openStationModal() {
+            document.getElementById('modal-station').classList.remove('hidden');
+        }
+        function closeStationModal() {
+            document.getElementById('modal-station').classList.add('hidden');
+        }
+
+        function openConfigModal() {
+            document.getElementById('cfg-supabase-url').value = state.supabaseUrl;
+            document.getElementById('cfg-supabase-key').value = state.supabaseKey;
+            document.getElementById('cfg-gemini-key').value = state.geminiApiKey || '';
+            document.getElementById('modal-config').classList.remove('hidden');
+        }
+        function closeConfigModal() {
+            document.getElementById('modal-config').classList.add('hidden');
+        }
+
+        function openSqlModal() {
+            document.getElementById('modal-sql').classList.remove('hidden');
+        }
+        function closeSqlModal() {
+            document.getElementById('modal-sql').classList.add('hidden');
+        }
+
+        function copySqlCode() {
+            const code = document.getElementById('sql-code-box').value;
+            copyTextToClipboard(code);
+            showToast("Código SQL copiado al portapapeles. Pégalo en Supabase.", "success");
+        }
+
+        function saveSupabaseConfig() {
+            const url = document.getElementById('cfg-supabase-url').value.trim();
+            const key = document.getElementById('cfg-supabase-key').value.trim();
+            const geminiKey = document.getElementById('cfg-gemini-key').value.trim();
+
+            if (!url || !key) {
+                showToast("Ingresa tanto la URL como la Anon Key.", "warning");
+                return;
+            }
+
+            state.supabaseUrl = url;
+            state.supabaseKey = key;
+            state.geminiApiKey = geminiKey;
+            localStorage.setItem('feria_salud_sp_url', url);
+            localStorage.setItem('feria_salud_sp_key', key);
+            localStorage.setItem('feria_salud_gemini_key', geminiKey);
+
+            closeConfigModal();
+            initSupabaseClient();
+            showToast("Configuración guardada exitosamente.", "success");
+        }
+
+        // PARTICIPANT SELECTION & SEARCH
+        function updateUIState() {
+            const countEl = document.getElementById('total-patients-count');
+            if (countEl) countEl.innerText = state.patients.length;
+
+            populatePatientDropdown();
+
+            // If selected patient still exists, re-sync ribbon
+            if (state.selectedPatientDoc) {
+                const p = state.patients.find(x => x.documento === state.selectedPatientDoc);
+                if (p) {
+                    renderPatientRibbon(p);
+                    loadSelectedPatientToForm(p);
+                } else {
+                    const ribbon = document.getElementById('selected-patient-ribbon');
+                    if (ribbon) ribbon.classList.add('hidden');
+                }
+            } else if (state.patients.length > 0 && state.currentStation !== '1') {
+                onSelectPatient(state.patients[0].documento);
+            }
+
+            // Stand 7 queue render
+            if (state.currentStation === '7') {
+                renderStand7Queue();
+            }
+
+            // Dashboard render
+            if (state.currentStation === 'dashboard') {
+                renderDashboardMetrics();
+            }
+        }
+
+        function populatePatientDropdown(filterText = '') {
+            const select = document.getElementById('patient-select');
+            if (!select) return;
+
+            const currentVal = state.selectedPatientDoc;
+            select.innerHTML = '<option value="">-- Selecciona el docente que acaba de llegar al stand --</option>';
+
+            const filterClean = filterText.toLowerCase().trim();
+
+            state.patients.forEach(p => {
+                const label = `${p.nombre_docente} (C.C. ${p.documento})${p.area ? ` [${p.area}]` : ''}`;
+                if (filterClean && !label.toLowerCase().includes(filterClean)) {
+                    return;
+                }
+                const opt = document.createElement('option');
+                opt.value = p.documento;
+                const completed = countCompletedStands(p);
+                opt.innerText = `${label} — [${completed}/5 Exámenes]`;
+                if (p.documento === currentVal) {
+                    opt.selected = true;
+                }
+                select.appendChild(opt);
+            });
+        }
+
+        function filterPatientSelect(query) {
+            populatePatientDropdown(query);
+        }
+
+        function onSelectPatient(doc) {
+            state.selectedPatientDoc = doc;
+            const patient = state.patients.find(p => p.documento === doc);
+            if (patient) {
+                renderPatientRibbon(patient);
+                loadSelectedPatientToForm(patient);
+            } else {
+                const ribbon = document.getElementById('selected-patient-ribbon');
+                if (ribbon) ribbon.classList.add('hidden');
+            }
+        }
+
+        function renderPatientRibbon(p) {
+            const ribbon = document.getElementById('selected-patient-ribbon');
+            if (!ribbon) return;
+            ribbon.classList.remove('hidden');
+
+            const nameEl = document.getElementById('ribbon-name');
+            if (nameEl) nameEl.innerText = p.nombre_docente;
+
+            const docEl = document.getElementById('ribbon-doc');
+            if (docEl) docEl.innerText = `C.C: ${p.documento}`;
+
+            const demoEl = document.getElementById('ribbon-demographics');
+            if (demoEl) demoEl.innerText = `Edad: ${p.edad} años • Sexo: ${p.sexo}${p.area ? ` • Área: ${p.area}` : ''}`;
+
+            // Stand progress badges (S2 to S6)
+            const progress = document.getElementById('ribbon-stands-progress');
+            if (progress) {
+                progress.innerHTML = `
+                    <span class="px-2 py-0.5 rounded ${p.temperatura ? 'bg-rose-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}">S2 Temp</span>
+                    <span class="px-2 py-0.5 rounded ${p.oximetria ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}">S3 Oxi</span>
+                    <span class="px-2 py-0.5 rounded ${p.imc ? 'bg-teal-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}">S4 IMC</span>
+                    <span class="px-2 py-0.5 rounded ${p.presion_sistolica ? 'bg-cyan-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}">S5 PA</span>
+                    <span class="px-2 py-0.5 rounded ${p.glucometria ? 'bg-amber-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}">S6 Gluc</span>
+                `;
+            }
+        }
+
+        function loadSelectedPatientToForm(p) {
+            // Load Stand 2: Temperatura
+            if (state.currentStation === '2') {
+                const s2Input = document.getElementById('s2-temp');
+                if (s2Input) {
+                    s2Input.value = p.temperatura || '';
+                    evalLiveTemp();
+                }
+            }
+            // Load Stand 3: Oximetría
+            if (state.currentStation === '3') {
+                const s3Spo2 = document.getElementById('s3-spo2');
+                const s3Pulse = document.getElementById('s3-pulse');
+                if (s3Spo2) s3Spo2.value = p.oximetria || '';
+                if (s3Pulse) s3Pulse.value = p.frecuencia_cardiaca || '';
+                evalLiveOxi();
+            }
+            // Load Stand 4: Antropometría
+            if (state.currentStation === '4') {
+                const s4W = document.getElementById('s4-weight');
+                const s4H = document.getElementById('s4-height');
+                if (s4W) s4W.value = p.peso || '';
+                if (s4H) s4H.value = p.altura || '';
+                evalLiveBmi();
+            }
+            // Load Stand 5: Presión Arterial
+            if (state.currentStation === '5') {
+                const s5Sys = document.getElementById('s5-sys');
+                const s5Dia = document.getElementById('s5-dia');
+                if (s5Sys) s5Sys.value = p.presion_sistolica || '';
+                if (s5Dia) s5Dia.value = p.presion_diastolica || '';
+                evalLiveBp();
+            }
+            // Load Stand 6: Glucometría
+            if (state.currentStation === '6') {
+                const s6Gluc = document.getElementById('s6-glucose');
+                const s6State = document.getElementById('s6-state');
+                if (s6Gluc) s6Gluc.value = p.glucometria || '';
+                if (s6State) s6State.value = p.tipo_toma || 'ayunas';
+                evalLiveGlucose();
+            }
+            // Load Stand 7: Consolidación y Carnet
+            if (state.currentStation === '7') {
+                renderStand7Consolidation(p);
+            }
+        }
+
+        function countCompletedStands(p) {
+            let count = 0;
+            if (p.temperatura) count++;
+            if (p.oximetria && p.frecuencia_cardiaca) count++;
+            if (p.peso && p.altura) count++;
+            if (p.presion_sistolica && p.presion_diastolica) count++;
+            if (p.glucometria) count++;
+            return count;
+        }
+
+        // ==========================================
+        // FORM SUBMISSION HANDLERS (SUPABASE WRITES)
+        // ==========================================
+
+        // Stand 1: Admisión e Inscripción del Docente
+        async function handleSaveStand1(e) {
+            e.preventDefault();
+
+            const doc = document.getElementById('s1-doc').value.trim();
+            const name = document.getElementById('s1-name').value.trim();
+            const age = parseInt(document.getElementById('s1-age').value);
+            const gender = document.getElementById('s1-gender').value;
+            const area = (document.getElementById('s1-area').value || '').trim();
+
+            if (!doc || !name || isNaN(age)) {
+                showToast("Por favor completa los campos obligatorios.", "warning");
+                return;
+            }
+
+            const payload = {
+                documento: doc,
+                nombre_docente: name,
+                edad: age,
+                sexo: gender,
+                area: area || null,
+                actualizado_en: new Date().toISOString()
+            };
+
+            const btn = document.getElementById('btn-save-s1');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Registrando...`;
+
+            try {
+                if (state.supabaseClient) {
+                    const { data, error } = await state.supabaseClient
+                        .from('feria_pacientes')
+                        .upsert(payload, { onConflict: 'documento' })
+                        .select();
+
+                    if (error) throw error;
+                    showToast(`Docente ${name} inscrito con éxito. Pasa al Stand 2: Temperatura.`, "success");
+                } else {
+                    // Local fallback
+                    const index = state.patients.findIndex(p => p.documento === doc);
+                    if (index !== -1) state.patients[index] = { ...state.patients[index], ...payload };
+                    else state.patients.unshift({ id: 'loc-' + Date.now(), ...payload });
+                    saveLocalCache();
+                    showToast(`Guardado en memoria local (sin Supabase conectado).`, "info");
+                }
+
+                // Reset form & set active patient
+                document.getElementById('form-stand-1').reset();
+                state.selectedPatientDoc = doc;
+                updateUIState();
+            } catch (err) {
+                console.error("Error saving Stand 1:", err);
+                showToast("Error al guardar en Supabase: " + (err.message || 'Verifica la consola'), "warning");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-user-plus"></i> Inscribir Docente y Enviar al Stand 2`;
+            }
+        }
+
+        // Stand 2: Temperatura Corporal
+        async function handleSaveStand2(e) {
+            e.preventDefault();
+            if (!state.selectedPatientDoc) {
+                showToast("Selecciona primero un docente de la lista para registrar la temperatura.", "warning");
+                return;
+            }
+
+            const temp = parseFloat(document.getElementById('s2-temp').value);
+            if (isNaN(temp)) {
+                showToast("Ingresa un valor de temperatura válido.", "warning");
+                return;
+            }
+
+            const tempEval = ClinicalRules.evaluateTemp(temp);
+
+            const updates = {
+                temperatura: temp,
+                estado_temperatura: tempEval.status,
+                actualizado_en: new Date().toISOString()
+            };
+
+            await updatePatientRecord(state.selectedPatientDoc, updates, `Stand 2: Temperatura (${temp}°C) guardada.`);
+        }
+
+        // Stand 3: Oximetría y Pulso
+        async function handleSaveStand3(e) {
+            e.preventDefault();
+            if (!state.selectedPatientDoc) {
+                showToast("Selecciona primero un docente de la lista para registrar el examen.", "warning");
+                return;
+            }
+
+            const spo2 = parseInt(document.getElementById('s3-spo2').value);
+            const pulse = parseInt(document.getElementById('s3-pulse').value);
+            const oxEval = ClinicalRules.evaluateSpO2(spo2);
+            const pulseEval = ClinicalRules.evaluatePulse(pulse);
+
+            const updates = {
+                oximetria: spo2,
+                frecuencia_cardiaca: pulse,
+                estado_oxigeno: oxEval.status,
+                estado_pulso: pulseEval.status,
+                actualizado_en: new Date().toISOString()
+            };
+
+            await updatePatientRecord(state.selectedPatientDoc, updates, "Stand 3: Oximetría y Pulso guardados.");
+        }
+
+        // Stand 4: Antropometría (IMC)
+        async function handleSaveStand4(e) {
+            e.preventDefault();
+            if (!state.selectedPatientDoc) {
+                showToast("Selecciona primero un docente de la lista.", "warning");
+                return;
+            }
+
+            const weight = parseFloat(document.getElementById('s4-weight').value);
+            const height = parseFloat(document.getElementById('s4-height').value);
+            const bmiEval = ClinicalRules.evaluateBMI(weight, height);
+
+            if (!bmiEval) {
+                showToast("Ingresa peso y talla válidos.", "warning");
+                return;
+            }
+
+            const updates = {
+                peso: weight,
+                altura: height,
+                imc: bmiEval.bmi,
+                estado_imc: bmiEval.status,
+                actualizado_en: new Date().toISOString()
+            };
+
+            await updatePatientRecord(state.selectedPatientDoc, updates, `Stand 4: Antropometría guardada (IMC: ${bmiEval.bmi}).`);
+        }
+
+        // Stand 5: Presión Arterial
+        async function handleSaveStand5(e) {
+            e.preventDefault();
+            if (!state.selectedPatientDoc) {
+                showToast("Selecciona primero un docente de la lista.", "warning");
+                return;
+            }
+
+            const sys = parseInt(document.getElementById('s5-sys').value);
+            const dia = parseInt(document.getElementById('s5-dia').value);
+            const bpEval = ClinicalRules.evaluateBP(sys, dia);
+
+            if (!bpEval) {
+                showToast("Ingresa valores de presión sistólica y diastólica.", "warning");
+                return;
+            }
+
+            const updates = {
+                presion_sistolica: sys,
+                presion_diastolica: dia,
+                estado_presion: bpEval.status,
+                actualizado_en: new Date().toISOString()
+            };
+
+            await updatePatientRecord(state.selectedPatientDoc, updates, `Stand 5: Presión ${sys}/${dia} mmHg guardada.`);
+        }
+
+        // Stand 6: Glucometría
+        async function handleSaveStand6(e) {
+            e.preventDefault();
+            if (!state.selectedPatientDoc) {
+                showToast("Selecciona primero un docente de la lista.", "warning");
+                return;
+            }
+
+            const glu = parseInt(document.getElementById('s6-glucose').value);
+            const stateTaken = document.getElementById('s6-state').value;
+            const gluEval = ClinicalRules.evaluateGlucose(glu, stateTaken);
+
+            if (!gluEval) {
+                showToast("Ingresa el valor de glucometría.", "warning");
+                return;
+            }
+
+            const updates = {
+                glucometria: glu,
+                tipo_toma: stateTaken,
+                estado_glucometria: gluEval.status,
+                actualizado_en: new Date().toISOString()
+            };
+
+            await updatePatientRecord(state.selectedPatientDoc, updates, `Stand 6: Glucometría (${glu} mg/dL) guardada.`);
+        }
+
+        // Stand 7: Guardar Notas y Cierre
+        async function handleSaveStand7Notes() {
+            if (!state.selectedPatientDoc) return;
+            const notes = document.getElementById('s7-final-notes').value;
+            const patient = state.patients.find(p => p.documento === state.selectedPatientDoc);
+            const isCompleted = patient ? (countCompletedStands(patient) >= 5) : false;
+
+            const updates = {
+                observaciones_finales: notes,
+                completado: isCompleted,
+                actualizado_en: new Date().toISOString()
+            };
+
+            await updatePatientRecord(state.selectedPatientDoc, updates, "Stand 7: Observación final y cierre guardado en Supabase.");
+        }
+
+        // ==========================================
+        // AGENTE DE IA CLÍNICA PREVENTIVA (GEMINI + FALLBACK)
+        // ==========================================
+        async function generateAiClinicalImpression() {
+            if (!state.selectedPatientDoc) {
+                showToast("Selecciona primero a un docente para realizar el análisis de IA.", "warning");
+                return;
+            }
+
+            const p = state.patients.find(x => x.documento === state.selectedPatientDoc);
+            if (!p) return;
+
+            const btn = document.getElementById('btn-ai-analysis');
+            const notesField = document.getElementById('s7-final-notes');
+            const originalBtnContent = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-white"></i> Analizando parámetros...`;
+
+            // Verificamos si existe API Key de Gemini
+            const apiKey = state.geminiApiKey || "";
+
+            if (!apiKey) {
+                // Motor heurístico clínico local experto
+                setTimeout(() => {
+                    const localImpression = generateLocalClinicalImpression(p);
+                    notesField.value = localImpression;
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnContent;
+                    showToast("Impresión clínica generada por el Asistente Clínico Local.", "success");
+                }, 400);
+                return;
+            }
+
+            // Prompt del Sistema: Rol de Médico Especialista en Medicina Preventiva Escolar
+            const systemPrompt = `Eres un médico especialista en medicina preventiva y comunitaria que asesora pedagógicamente a estudiantes de secundaria en una Feria de la Salud Escolar.
+Tu objetivo es analizar los signos vitales, antropometría y parámetros metabólicos registrados del docente y redactar una 'Impresión Diagnóstica y Plan de Acción Preventivo' conciso, empático y clínicamente fundamentado (máximo 1 o 2 párrafos).
+
+Criterios de redacción:
+1. Resumir el estado general del docente indicando si los valores son óptimos o si existen factores de riesgo (ej. sospecha de prehipertensión/hipertensión, taquicardia/bradicardia, hipoxemia, sobrepeso/obesidad, hiperglicemia).
+2. Proporcionar recomendaciones pedagógicas de autocuidado adaptadas a la labor docente (hidratación durante clases, pausas activas para la voz y postura, manejo del estrés escolar y alimentación).
+3. Determinar claramente si amerita:
+   - "Control preventivo de rutina en EPS", o
+   - "Consulta médica prioritaria con su EPS para valoración integral".
+4. Redactar directamente el texto en prosa médica fluida, sin títulos ni asteriscos repetitivos, listo para imprimirse en el carnet.`;
+
+            // Prompt del Usuario con los parámetros reales
+            const userPrompt = `Docente evaluado: ${p.nombre_docente || 'Docente'}
+Edad: ${p.edad || 'No especificada'} años | Sexo biológico: ${p.sexo || 'No especificado'} | Área: ${p.area || 'General'}
+Parámetros medidos en los stands del circuito escolar:
+- Stand 2 (Temperatura): ${p.temperatura ? `${p.temperatura} °C (${p.estado_temperatura || 'Normal'})` : 'No medido'}
+- Stand 3 (Oximetría y Pulso): Saturación: ${p.oximetria ? `${p.oximetria}% (${p.estado_oxigeno || 'Normal'})` : 'No medido'} | Pulso: ${p.frecuencia_cardiaca ? `${p.frecuencia_cardiaca} LPM (${p.estado_pulso || 'Normal'})` : 'No medido'}
+- Stand 4 (Antropometría): Peso: ${p.peso ? `${p.peso} kg` : 'N/D'} | Talla: ${p.altura ? `${p.altura} cm` : 'N/D'} | IMC: ${p.imc ? `${p.imc} kg/m² (${p.estado_imc || 'Normal'})` : 'No medido'}
+- Stand 5 (Presión Arterial): ${p.presion_sistolica && p.presion_diastolica ? `${p.presion_sistolica}/${p.presion_diastolica} mmHg (${p.estado_presion || 'Normal'})` : 'No medido'}
+- Stand 6 (Glucometría): ${p.glucometria ? `${p.glucometria} mg/dL en condición ${p.tipo_toma || 'ayunas'} (${p.estado_glucometria || 'Normal'})` : 'No medido'}
+
+Por favor, elabora la impresión clínica preventiva y recomendaciones para el carnet de salud escolar.`;
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const result = await response.json();
+                const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (text) {
+                    notesField.value = text.trim();
+                    showToast("Impresión clínica generada con éxito por Gemini IA.", "success");
+                } else {
+                    throw new Error("Respuesta vacía de IA");
+                }
+            } catch (err) {
+                console.warn("Fallo en Gemini API, activando generador clínico local:", err);
+                const localImpression = generateLocalClinicalImpression(p);
+                notesField.value = localImpression;
+                showToast("Impresión generada mediante el Asistente Clínico Local.", "info");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnContent;
+            }
+        }
+
+        // Generador local de alta precisión clínica (Fallback)
+        function generateLocalClinicalImpression(p) {
+            const findings = [];
+            const alerts = [];
+
+            if (p.temperatura) {
+                if (p.temperatura >= 38.0) alerts.push(`cuadro febril (${p.temperatura}°C)`);
+                else if (p.temperatura >= 37.3) findings.push(`febrícula leve (${p.temperatura}°C)`);
+            }
+            if (p.oximetria && p.oximetria < 95) {
+                alerts.push(`saturación de O2 limítrofe (${p.oximetria}%)`);
+            }
+            if (p.frecuencia_cardiaca) {
+                if (p.frecuencia_cardiaca > 100) alerts.push(`taquicardia en reposo (${p.frecuencia_cardiaca} lpm)`);
+                else if (p.frecuencia_cardiaca < 60) findings.push(`bradicardia relativa (${p.frecuencia_cardiaca} lpm)`);
+            }
+            if (p.imc) {
+                if (p.imc >= 30) alerts.push(`obesidad (${p.imc} kg/m²)`);
+                else if (p.imc >= 25) findings.push(`sobrepeso ponderal (IMC ${p.imc} kg/m²)`);
+                else if (p.imc < 18.5) findings.push(`bajo peso corporal (IMC ${p.imc} kg/m²)`);
+            }
+            if (p.presion_sistolica && p.presion_diastolica) {
+                if (p.presion_sistolica >= 140 || p.presion_diastolica >= 90) {
+                    alerts.push(`cifras tensionales elevadas (${p.presion_sistolica}/${p.presion_diastolica} mmHg)`);
+                } else if (p.presion_sistolica >= 120 || p.presion_diastolica >= 80) {
+                    findings.push(`presión arterial limítrofe (${p.presion_sistolica}/${p.presion_diastolica} mmHg)`);
+                }
+            }
+            if (p.glucometria) {
+                if (p.tipo_toma === 'ayunas' && p.glucometria >= 126) alerts.push(`glicemia basal elevada (${p.glucometria} mg/dL)`);
+                else if (p.tipo_toma === 'ayunas' && p.glucometria >= 100) findings.push(`glicemia basal alterada (${p.glucometria} mg/dL)`);
+                else if (p.tipo_toma === 'postprandial' && p.glucometria >= 200) alerts.push(`hiperglicemia postprandial (${p.glucometria} mg/dL)`);
+            }
+
+            let text = `Docente ${p.nombre_docente || ''} (${p.edad || '--'} años, ${p.sexo || ''}). `;
+            if (alerts.length > 0) {
+                text += `Durante el tamizaje escolar se identifican hallazgos de atención prioritaria: ${alerts.join(', ')}. `;
+                if (findings.length > 0) text += `Adicionalmente se registra ${findings.join(', ')}. `;
+                text += `Plan: Se recomienda remitir a valoración médica prioritaria con su EPS para estudio complementario, además de implementar pausas activas contra el estrés escolar, buena hidratación y moderación en el consumo de sodio y azúcares.`;
+            } else if (findings.length > 0) {
+                text += `Presenta parámetros hemodinámicos estables con observaciones leves: ${findings.join(', ')}. `;
+                text += `Plan: Se aconseja continuar con hábitos saludables de vida activa, hidratación regular durante la jornada pedagógica y agendar chequeo preventivo de rutina en su servicio de salud.`;
+            } else {
+                text += `Presenta parámetros clínicos y signos vitales en rangos óptimos de normalidad fisiológica. `;
+                text += `Plan: Felicitaciones por el autocuidado. Se sugiere mantener hidratación constante, pausas activas para el descanso de la voz y control preventivo anual con su EPS.`;
+            }
+
+            return text;
+        }
+
+        // Generic Supabase Record Updater
+        async function updatePatientRecord(documento, updates, successMessage) {
+            try {
+                if (state.supabaseClient) {
+                    const { error } = await state.supabaseClient
+                        .from('feria_pacientes')
+                        .update(updates)
+                        .eq('documento', documento);
+
+                    if (error) throw error;
+                } else {
+                    // Local fallback
+                    const index = state.patients.findIndex(p => p.documento === documento);
+                    if (index !== -1) {
+                        state.patients[index] = { ...state.patients[index], ...updates };
+                        saveLocalCache();
+                    }
+                }
+
+                showToast(successMessage, "success");
+                updateUIState();
+            } catch (err) {
+                console.error("Error updating patient:", err);
+                showToast("Error al guardar en Supabase: " + (err.message || 'Comprueba conexión'), "warning");
+            }
+        }
+
+        // ==========================================
+        // STAND 7: SEMÁFORO EN VIVO Y CARNET
+        // ==========================================
+        function renderStand7Consolidation(p) {
+            const container = document.getElementById('s7-semaphore-container');
+            const autoRecsBox = document.getElementById('s7-auto-recs');
+            const notesField = document.getElementById('s7-final-notes');
+
+            notesField.value = p.observaciones_finales || '';
+
+            // 5 Clinical Stations Cards (Stands 2 to 6)
+            const tEval = ClinicalRules.evaluateTemp(p.temperatura);
+            const oxEval = ClinicalRules.evaluateSpO2(p.oximetria);
+            const pEval = ClinicalRules.evaluatePulse(p.frecuencia_cardiaca);
+            const bmiEval = ClinicalRules.evaluateBMI(p.peso, p.altura);
+            const bpEval = ClinicalRules.evaluateBP(p.presion_sistolica, p.presion_diastolica);
+            const gluEval = ClinicalRules.evaluateGlucose(p.glucometria, p.tipo_toma);
+
+            container.innerHTML = `
+                ${buildS7Card('S2. Temp', p.temperatura ? `${p.temperatura} °C` : null, tEval.status, tEval.color, 'fa-temperature-half')}
+                ${buildS7Card('S3. Oxi/Pulso', p.oximetria ? `${p.oximetria}% | ${p.frecuencia_cardiaca} lpm` : null, oxEval.status, oxEval.color, 'fa-heart-pulse')}
+                ${buildS7Card('S4. IMC', bmiEval ? `${bmiEval.bmi} kg/m²` : null, bmiEval ? bmiEval.status : 'Sin datos', bmiEval ? bmiEval.color : 'slate', 'fa-weight-scale')}
+                ${buildS7Card('S5. Presión', p.presion_sistolica ? `${p.presion_sistolica}/${p.presion_diastolica}` : null, bpEval ? bpEval.status : 'Sin datos', bpEval ? bpEval.color : 'slate', 'fa-gauge-high')}
+                ${buildS7Card('S6. Glucosa', p.glucometria ? `${p.glucometria} mg/dL` : null, gluEval ? gluEval.status : 'Sin datos', gluEval ? gluEval.color : 'slate', 'fa-droplet')}
+            `;
+
+            // Smart recommendations
+            const recs = generatePedagogicRecommendations(p);
+            autoRecsBox.innerHTML = recs.map(r => `• ${r}`).join('<br>');
+        }
+
+        function buildS7Card(title, val, status, color, icon) {
+            const isDone = !!val;
+            const badgeColors = {
+                emerald: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+                amber: 'bg-amber-100 text-amber-800 border-amber-300',
+                rose: 'bg-rose-100 text-rose-800 border-rose-300',
+                blue: 'bg-blue-100 text-blue-800 border-blue-300',
+                slate: 'bg-slate-100 text-slate-500 border-slate-200'
+            };
+
+            return `
+                <div class="p-3.5 rounded-2xl border ${isDone ? 'bg-white border-slate-200' : 'bg-slate-50 border-dashed border-slate-300'} flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-1">
+                            <span>${title}</span>
+                            <i class="fa-solid ${icon}"></i>
+                        </div>
+                        <div class="text-base font-black ${isDone ? 'text-slate-800' : 'text-slate-400'}">
+                            ${val || 'Pendiente'}
+                        </div>
+                    </div>
+                    <div class="mt-2.5">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border block text-center truncate ${badgeColors[color] || badgeColors.slate}">
+                            ${status}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStand7Queue() {
+            const tbody = document.getElementById('s7-queue-tbody');
+            tbody.innerHTML = '';
+
+            state.patients.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition cursor-pointer";
+                tr.onclick = () => onSelectPatient(p.documento);
+
+                const cCount = countCompletedStands(p);
+                const isSelected = p.documento === state.selectedPatientDoc;
+
+                tr.innerHTML = `
+                    <td class="p-2.5 ${isSelected ? 'font-black text-indigo-700' : 'font-semibold text-slate-800'}">
+                        ${p.nombre_docente}
+                        <div class="text-[10px] text-slate-400">C.C. ${p.documento}</div>
+                    </td>
+                    <td class="p-2.5 text-center">${p.temperatura ? `<span class="text-rose-600 font-bold">${p.temperatura}°C</span>` : '<span class="text-slate-300">—</span>'}</td>
+                    <td class="p-2.5 text-center">${p.oximetria ? `<span class="text-indigo-600 font-bold">${p.oximetria}%</span>` : '<span class="text-slate-300">—</span>'}</td>
+                    <td class="p-2.5 text-center">${p.imc ? `<span class="text-teal-600 font-bold">${p.imc}</span>` : '<span class="text-slate-300">—</span>'}</td>
+                    <td class="p-2.5 text-center">${p.presion_sistolica ? `<span class="text-cyan-600 font-bold">${p.presion_sistolica}/${p.presion_diastolica}</span>` : '<span class="text-slate-300">—</span>'}</td>
+                    <td class="p-2.5 text-center">${p.glucometria ? `<span class="text-amber-600 font-bold">${p.glucometria}</span>` : '<span class="text-slate-300">—</span>'}</td>
+                    <td class="p-2.5 text-right">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold ${cCount === 5 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                            ${cCount}/5 Listo
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // PRINT CARNET PREPARATION
+        function populatePrintData(p) {
+            // Fill Header details
+            document.getElementById('prn-date').innerText = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('prn-folio').innerText = '#' + (p.documento ? p.documento.slice(-5) : '00000');
+            document.getElementById('prn-name').innerText = p.nombre_docente;
+            document.getElementById('prn-doc').innerText = p.documento;
+            document.getElementById('prn-age').innerText = `${p.edad} años`;
+            document.getElementById('prn-gender').innerText = p.sexo;
+            const prnArea = document.getElementById('prn-area');
+            if (prnArea) prnArea.innerText = p.area || 'General';
+
+            // Table Rows
+            const tbody = document.getElementById('prn-table-body');
+            tbody.innerHTML = '';
+
+            const tEval = ClinicalRules.evaluateTemp(p.temperatura);
+            const oxEval = ClinicalRules.evaluateSpO2(p.oximetria);
+            const pEval = ClinicalRules.evaluatePulse(p.frecuencia_cardiaca);
+            const bmiEval = ClinicalRules.evaluateBMI(p.peso, p.altura);
+            const bpEval = ClinicalRules.evaluateBP(p.presion_sistolica, p.presion_diastolica);
+            const gluEval = ClinicalRules.evaluateGlucose(p.glucometria, p.tipo_toma);
+
+            tbody.appendChild(createPrintTr('Stand 2', 'Temperatura Corporal', p.temperatura ? `${p.temperatura} °C` : 'No medido', '35.5 - 37.2 °C', tEval.status, tEval.color));
+            tbody.appendChild(createPrintTr('Stand 3', 'Oximetría (% SpO2)', p.oximetria ? `${p.oximetria} %` : 'No medido', '95 - 100 %', oxEval.status, oxEval.color));
+            tbody.appendChild(createPrintTr('Stand 3', 'Frecuencia Cardíaca', p.frecuencia_cardiaca ? `${p.frecuencia_cardiaca} LPM` : 'No medido', '60 - 100 LPM', pEval.status, pEval.color));
+            tbody.appendChild(createPrintTr('Stand 4', 'Antropometría (IMC)', bmiEval ? `${p.peso} kg | ${p.altura} cm (IMC: ${bmiEval.bmi})` : 'No medido', '18.5 - 24.9 kg/m²', bmiEval ? bmiEval.status : 'Sin datos', bmiEval ? bmiEval.color : 'slate'));
+            tbody.appendChild(createPrintTr('Stand 5', 'Presión Arterial', p.presion_sistolica ? `${p.presion_sistolica}/${p.presion_diastolica} mmHg` : 'No medido', '< 120 y < 80 mmHg', bpEval ? bpEval.status : 'Sin datos', bpEval ? bpEval.color : 'slate'));
+            tbody.appendChild(createPrintTr('Stand 6', `Glucometría (${p.tipo_toma || 'Ayunas'})`, p.glucometria ? `${p.glucometria} mg/dL` : 'No medido', p.tipo_toma === 'postprandial' ? '< 140 mg/dL' : '70 - 99 mg/dL', gluEval ? gluEval.status : 'Sin datos', gluEval ? gluEval.color : 'slate'));
+
+            // Recommendations & Notes
+            const recs = generatePedagogicRecommendations(p);
+            document.getElementById('prn-recommendations').innerHTML = recs.map(r => `• ${r}`).join('<br>');
+            const notesEl = document.getElementById('prn-notes');
+            if (notesEl) {
+                notesEl.innerHTML = p.observaciones_finales ? p.observaciones_finales.replace(/\n/g, '<br>') : 'El docente completó satisfactoriamente la ruta de las 7 estaciones escolares.';
+            }
+        }
+
+        function createPrintTr(stand, testName, result, ref, status, color) {
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = '1px solid #cbd5e1';
+
+            const colorMap = {
+                emerald: { bg: '#ecfdf5', text: '#065f46', border: '#a7f3d0' },
+                amber: { bg: '#fffbeb', text: '#92400e', border: '#fde68a' },
+                rose: { bg: '#fff1f2', text: '#9f1239', border: '#fecdd3' },
+                blue: { bg: '#eff6ff', text: '#1e40af', border: '#bfdbfe' },
+                slate: { bg: '#f1f5f9', text: '#475569', border: '#cbd5e1' }
+            };
+            const c = colorMap[color] || colorMap.slate;
+
+            tr.innerHTML = `
+                <td style="padding: 5px 8px; font-weight: bold; color: #475569;">${stand}</td>
+                <td style="padding: 5px 8px; font-weight: 600;">${testName}</td>
+                <td style="padding: 5px 8px; text-align: center; font-weight: 700; color: #0f172a;">${result}</td>
+                <td style="padding: 5px 8px; text-align: center; color: #64748b; font-size: 9.5px;">${ref}</td>
+                <td style="padding: 5px 8px; text-align: center;">
+                    <span style="display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: bold; border-radius: 4px; background: ${c.bg}; color: ${c.text}; border: 1px solid ${c.border};">
+                        ${status}
+                    </span>
+                </td>
+            `;
+            return tr;
+        }
+
+        function generatePedagogicRecommendations(p) {
+            const recs = [];
+            if (!p) return ['Selecciona un docente para ver recomendaciones.'];
+
+            if (p.presion_sistolica >= 140 || p.presion_diastolica >= 90) {
+                recs.push('Cifras tensionales elevadas: Solicitar cita médica prioritaria para valoración cardiovascular en su EPS.');
+            } else if (p.presion_sistolica >= 120 || p.presion_diastolica >= 80) {
+                recs.push('Presión arterial limítrofe: Moderar el consumo de sal, cafeína y monitorear periódicamente.');
+            }
+
+            if (p.imc) {
+                if (p.imc >= 30) {
+                    recs.push('Obesidad detectada: Iniciar plan nutricional guiado y rutina progresiva de ejercicio físico moderado.');
+                } else if (p.imc >= 25) {
+                    recs.push('Sobrepeso ponderal: Favorecer dieta rica en vegetales y frutas, y realizar pausas activas durante la jornada escolar.');
+                } else if (p.imc < 18.5) {
+                    recs.push('Bajo peso: Sugerir valoración nutricional para balance calórico-proteico.');
+                }
+            }
+
+            if (p.glucometria) {
+                if ((p.tipo_toma === 'ayunas' && p.glucometria >= 126) || (p.tipo_toma === 'postprandial' && p.glucometria >= 200)) {
+                    recs.push('Glicemia elevada: Valoración prioritaria con médico tratante para descartar diabetes mellitus.');
+                } else if (p.tipo_toma === 'ayunas' && p.glucometria >= 100) {
+                    recs.push('Glicemia alterada en ayunas: Reducir consumo de bebidas azucaradas, harinas refinadas y ultraprocesados.');
+                }
+            }
+
+            if (p.oximetria && p.oximetria < 95) {
+                recs.push('Saturación de oxígeno por debajo de lo óptimo: Consultar a su médico si presenta fatiga respiratoria.');
+            }
+
+            if (p.temperatura && p.temperatura >= 38.0) {
+                recs.push('Cuadro febril activo: Reposo inmediato, hidratación oral abundante y consulta médica.');
+            }
+
+            if (recs.length === 0) {
+                recs.push('Parámetros fisiológicos dentro de los rangos esperados.');
+                recs.push('Mantener hidratación oral constante y pausas activas para el cuidado de la voz y la columna.');
+                recs.push('Continuar con chequeo médico preventivo anual en su EPS.');
+            }
+
+            return recs;
+        }
+
+        function previewCarnetModal() {
+            if (!state.selectedPatientDoc) {
+                showToast("Selecciona primero un docente para ver su carnet.", "warning");
+                return;
+            }
+            const patient = state.patients.find(p => p.documento === state.selectedPatientDoc);
+            if (!patient) return;
+
+            populatePrintData(patient);
+
+            const reportClone = document.getElementById('printable-report-container').firstElementChild.cloneNode(true);
+            const previewContainer = document.getElementById('modal-preview-content');
+            previewContainer.innerHTML = '';
+            reportClone.style.backgroundColor = '#ffffff';
+            reportClone.style.padding = '20px';
+            reportClone.style.borderRadius = '12px';
+            reportClone.style.boxShadow = '0 10px 25px -5px rgba(0,0,0,0.1)';
+            previewContainer.appendChild(reportClone);
+
+            document.getElementById('modal-preview').classList.remove('hidden');
+        }
+
+        function closePreviewModal() {
+            document.getElementById('modal-preview').classList.add('hidden');
+        }
+
+        function triggerPrintCarnet() {
+            if (!state.selectedPatientDoc) {
+                showToast("Selecciona primero a un docente para imprimir su carnet.", "warning");
+                return;
+            }
+            const patient = state.patients.find(p => p.documento === state.selectedPatientDoc);
+            if (!patient) return;
+
+            populatePrintData(patient);
+            closePreviewModal();
+
+            setTimeout(() => {
+                window.print();
+            }, 150);
+        }
+
+        function downloadCSVExport() {
+            if (state.patients.length === 0) {
+                showToast("No hay registros disponibles para exportar.", "warning");
+                return;
+            }
+
+            let csv = "\uFEFF"; // UTF-8 BOM
+            csv += "Documento,Nombre,Edad,Sexo,Area,Temperatura_C,Oximetria_SpO2,Pulso_LPM,Peso_KG,Talla_CM,IMC,Presion_Sistolica,Presion_Diastolica,Glucometria_mgdL,Tipo_Glucosa,Observaciones\n";
+
+            state.patients.forEach(p => {
+                const row = [
+                    `"${p.documento}"`,
+                    `"${p.nombre_docente}"`,
+                    p.edad,
+                    `"${p.sexo}"`,
+                    `"${p.area || ''}"`,
+                    p.temperatura || '',
+                    p.oximetria || '',
+                    p.frecuencia_cardiaca || '',
+                    p.peso || '',
+                    p.altura || '',
+                    p.imc || '',
+                    p.presion_sistolica || '',
+                    p.presion_diastolica || '',
+                    p.glucometria || '',
+                    `"${p.tipo_toma || ''}"`,
+                    `"${(p.observaciones_finales || '').replace(/"/g, '""')}"`
+                ];
+                csv += row.join(",") + "\n";
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `Feria_Salud_7Stands_${new Date().toISOString().slice(0, 10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("Reporte general exportado en formato CSV para Excel.", "success");
+        }
+
+        function renderDashboardMetrics() {
+            const total = state.patients.length;
+            let completed = 0;
+            let inProgress = 0;
+            let alerts = 0;
+
+            const tbody = document.getElementById('dash-master-tbody');
+            if (tbody) tbody.innerHTML = '';
+
+            state.patients.forEach(p => {
+                const cCount = countCompletedStands(p);
+                if (cCount >= 5) completed++;
+                else inProgress++;
+
+                // Check alerts
+                let hasAlert = false;
+                if (p.temperatura && (p.temperatura >= 38.0 || p.temperatura < 35.5)) hasAlert = true;
+                if (p.oximetria && p.oximetria < 90) hasAlert = true;
+                if (p.frecuencia_cardiaca && (p.frecuencia_cardiaca > 100 || p.frecuencia_cardiaca < 60)) hasAlert = true;
+                if (p.imc && (p.imc >= 30 || p.imc < 18.5)) hasAlert = true;
+                if (p.presion_sistolica && (p.presion_sistolica >= 140 || p.presion_diastolica >= 90)) hasAlert = true;
+                if (p.glucometria && ((p.tipo_toma === 'ayunas' && p.glucometria >= 126) || (p.tipo_toma === 'postprandial' && p.glucometria >= 200))) hasAlert = true;
+
+                if (hasAlert) alerts++;
+
+                if (tbody) {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer";
+                    tr.onclick = () => {
+                        onSelectPatient(p.documento);
+                        setStation('7');
+                    };
+
+                    tr.innerHTML = `
+                        <td class="p-3 font-semibold text-slate-800 dark:text-slate-200">
+                            ${p.nombre_docente}
+                            <div class="text-[10px] text-slate-400 font-normal">C.C. ${p.documento} • ${p.edad} años ${p.area ? `• ${p.area}` : ''}</div>
+                        </td>
+                        <td class="p-3 text-center">${p.temperatura ? `${p.temperatura}°C` : '—'}</td>
+                        <td class="p-3 text-center">${p.oximetria ? `${p.oximetria}% / ${p.frecuencia_cardiaca || '—'} lpm` : '—'}</td>
+                        <td class="p-3 text-center">${p.imc ? `${p.imc}` : '—'}</td>
+                        <td class="p-3 text-center">${p.presion_sistolica ? `${p.presion_sistolica}/${p.presion_diastolica}` : '—'}</td>
+                        <td class="p-3 text-center">${p.glucometria ? `${p.glucometria} mg/dL` : '—'}</td>
+                        <td class="p-3 text-center">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${cCount >= 5 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300'}">
+                                ${cCount}/5 ${cCount >= 5 ? 'Completo' : 'En Ruta'}
+                            </span>
+                        </td>
+                        <td class="p-3 text-right">
+                            <button class="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-900/40 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 rounded-lg font-bold text-[11px] transition">
+                                Ver Carnet
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+
+            const dTotal = document.getElementById('dash-total');
+            if (dTotal) dTotal.innerText = total;
+            const dComp = document.getElementById('dash-completed');
+            if (dComp) dComp.innerText = completed;
+            const dProg = document.getElementById('dash-in-progress');
+            if (dProg) dProg.innerText = inProgress;
+            const dAlert = document.getElementById('dash-alerts');
+            if (dAlert) dAlert.innerText = alerts;
+        }
+
+        function evalLiveTemp() {
+            const val = document.getElementById('s2-temp').value;
+            const statusEl = document.getElementById('s2-eval-status');
+            const descEl = document.getElementById('s2-eval-desc');
+            const cardEl = document.getElementById('s2-diagnostic-card');
+            const res = ClinicalRules.evaluateTemp(val);
+
+            if (!val) {
+                statusEl.innerText = '---';
+                statusEl.className = 'text-2xl font-black text-slate-400';
+                descEl.innerText = 'Ingresa la temperatura para obtener el estado fisiológico.';
+                cardEl.className = 'p-5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center space-y-1.5';
+                return;
+            }
+
+            statusEl.innerText = res.status;
+            if (res.color === 'emerald') {
+                statusEl.className = 'text-2xl font-black text-emerald-600 dark:text-emerald-400';
+                descEl.innerText = 'Rango fisiológico dentro de parámetros normales.';
+                cardEl.className = 'p-5 rounded-2xl bg-emerald-50/70 border border-emerald-300 dark:bg-emerald-950/30 text-center space-y-1.5';
+            } else if (res.color === 'amber') {
+                statusEl.className = 'text-2xl font-black text-amber-600 dark:text-amber-400';
+                descEl.innerText = 'Febrícula: verificar sintomatología infecciosa o ambiental.';
+                cardEl.className = 'p-5 rounded-2xl bg-amber-50/70 border border-amber-300 dark:bg-amber-950/30 text-center space-y-1.5';
+            } else if (res.color === 'blue') {
+                statusEl.className = 'text-2xl font-black text-blue-600 dark:text-blue-400';
+                descEl.innerText = 'Hipotermia: comprobar colocación y repetir medición.';
+                cardEl.className = 'p-5 rounded-2xl bg-blue-50/70 border border-blue-300 dark:bg-blue-950/30 text-center space-y-1.5';
+            } else {
+                statusEl.className = 'text-2xl font-black text-rose-600 dark:text-rose-400';
+                descEl.innerText = 'Fiebre alta: requiere reposo y valoración médica prioritaria.';
+                cardEl.className = 'p-5 rounded-2xl bg-rose-50/70 border border-rose-300 dark:bg-rose-950/30 text-center space-y-1.5';
+            }
+        }
+
+        function evalLiveOxi() {
+            const spo2 = document.getElementById('s3-spo2').value;
+            const pulse = document.getElementById('s3-pulse').value;
+            const bSpo2 = document.getElementById('s3-eval-spo2');
+            const bPulse = document.getElementById('s3-eval-pulse');
+
+            if (spo2) {
+                const res = ClinicalRules.evaluateSpO2(spo2);
+                bSpo2.innerText = res.status;
+                bSpo2.className = `py-1 px-3 rounded-lg text-xs font-bold text-center ${res.color === 'emerald' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300' : res.color === 'amber' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300'}`;
+            } else {
+                bSpo2.innerText = 'Esperando medición';
+                bSpo2.className = 'py-1 px-3 rounded-lg text-xs font-bold text-center bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300';
+            }
+
+            if (pulse) {
+                const res = ClinicalRules.evaluatePulse(pulse);
+                bPulse.innerText = res.status;
+                bPulse.className = `py-1 px-3 rounded-lg text-xs font-bold text-center ${res.color === 'emerald' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300' : res.color === 'amber' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300'}`;
+            } else {
+                bPulse.innerText = 'Esperando medición';
+                bPulse.className = 'py-1 px-3 rounded-lg text-xs font-bold text-center bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300';
+            }
+        }
+
+        function evalLiveBmi() {
+            const w = document.getElementById('s4-weight').value;
+            const h = document.getElementById('s4-height').value;
+            const bmiDisplay = document.getElementById('s4-bmi-val');
+            const statusEl = document.getElementById('s4-eval-status');
+
+            const res = ClinicalRules.evaluateBMI(w, h);
+            if (!res) {
+                bmiDisplay.innerHTML = '<span>--</span><span class="text-xs font-normal text-slate-400">kg/m²</span>';
+                statusEl.innerText = 'Ingresa peso y talla';
+                statusEl.className = 'text-lg font-black text-slate-500';
+                return;
+            }
+
+            bmiDisplay.innerHTML = `<span>${res.bmi}</span><span class="text-xs font-normal text-slate-400">kg/m²</span>`;
+            statusEl.innerText = res.status;
+            if (res.color === 'emerald') statusEl.className = 'text-lg font-black text-emerald-600';
+            else if (res.color === 'amber') statusEl.className = 'text-lg font-black text-amber-600';
+            else if (res.color === 'blue') statusEl.className = 'text-lg font-black text-blue-600';
+            else statusEl.className = 'text-lg font-black text-rose-600';
+        }
+
+        function evalLiveBp() {
+            const s = document.getElementById('s5-sys').value;
+            const d = document.getElementById('s5-dia').value;
+            const statusEl = document.getElementById('s5-eval-status');
+
+            const res = ClinicalRules.evaluateBP(s, d);
+            if (!res) {
+                statusEl.innerText = 'Ingresa sistólica y diastólica';
+                statusEl.className = 'text-lg font-black text-slate-500';
+                return;
+            }
+
+            statusEl.innerText = res.status;
+            if (res.color === 'emerald') statusEl.className = 'text-lg font-black text-emerald-600';
+            else if (res.color === 'amber') statusEl.className = 'text-lg font-black text-amber-600';
+            else if (res.color === 'blue') statusEl.className = 'text-lg font-black text-blue-600';
+            else statusEl.className = 'text-lg font-black text-rose-600';
+        }
+
+        function evalLiveGlucose() {
+            const g = document.getElementById('s6-glucose').value;
+            const stateTaken = document.getElementById('s6-state').value;
+            const statusEl = document.getElementById('s6-eval-status');
+
+            const res = ClinicalRules.evaluateGlucose(g, stateTaken);
+            if (!res) {
+                statusEl.innerText = 'Ingresa el valor de glucosa';
+                statusEl.className = 'text-lg font-black text-slate-500';
+                return;
+            }
+
+            statusEl.innerText = res.status;
+            if (res.color === 'emerald') statusEl.className = 'text-lg font-black text-emerald-600';
+            else if (res.color === 'amber') statusEl.className = 'text-lg font-black text-amber-600';
+            else statusEl.className = 'text-lg font-black text-rose-600';
+        }
+
+        // ==========================================
+        // NOTIFICACIONES, SONIDO Y CLIPBOARD
+        // ==========================================
+        function showToast(message, type = 'info') {
+            const old = document.getElementById('app-toast');
+            if (old) old.remove();
+
+            const toast = document.createElement('div');
+            toast.id = 'app-toast';
+
+            const bgClasses = {
+                success: 'bg-emerald-800 text-white border-emerald-900',
+                warning: 'bg-amber-700 text-white border-amber-800',
+                info: 'bg-slate-900 text-white border-slate-950'
+            };
+
+            const icons = {
+                success: 'fa-circle-check',
+                warning: 'fa-triangle-exclamation',
+                info: 'fa-circle-info'
+            };
+
+            toast.className = `fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl border text-xs sm:text-sm font-semibold transition transform duration-300 translate-y-2 ${bgClasses[type] || bgClasses.info} no-print`;
+            toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info} text-lg"></i> <span>${message}</span>`;
+
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-y-2'), 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        function playNotificationSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5 note
+                gain.gain.setValueAtTime(0.04, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.25);
+            } catch (e) {
+                // AudioContext blocked by browser autoplay policy until user gesture
+            }
+        }
+
+        function copyTextToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+    </script>
+</body>
+</html>
