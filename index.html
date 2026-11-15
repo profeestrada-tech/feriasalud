@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PromoHealth • Feria Centros de Interés</title>
+    <title>PromoHealth • Feria Centros de Interés INEM Montería</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -103,19 +103,19 @@
                 <!-- Controles Rápidos -->
                 <div class="flex items-center gap-1.5 sm:gap-2 ml-auto">
                     <!-- Selector de Rol / Stand -->
-                    <button onclick="openStationModal()" class="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 transition cursor-pointer max-w-[165px] sm:max-w-none">
+                    <button type="button" onclick="openStationModal()" class="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 transition cursor-pointer max-w-[165px] sm:max-w-none">
                         <i class="fa-solid fa-location-dot shrink-0"></i>
                         <span id="current-station-label" class="truncate">Stand 1: Admisión</span>
                         <i class="fa-solid fa-chevron-down text-[10px] opacity-80 shrink-0"></i>
                     </button>
 
                     <!-- Sincronizar Manual -->
-                    <button onclick="fetchCloudPatients(true)" title="Sincronizar datos en vivo" class="p-2 sm:p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-navy-850 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer shrink-0">
+                    <button type="button" onclick="fetchCloudPatients(true)" title="Sincronizar datos en vivo" class="p-2 sm:p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-navy-850 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer shrink-0">
                         <i id="sync-icon" class="fa-solid fa-rotate text-sm"></i>
                     </button>
 
                     <!-- Alternar Tema Claro/Oscuro -->
-                    <button onclick="toggleTheme()" title="Cambiar tema visual" class="p-2 sm:p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-navy-850 dark:hover:bg-slate-800 text-slate-600 dark:text-amber-400 border border-slate-200 dark:border-slate-700 transition cursor-pointer shrink-0">
+                    <button type="button" onclick="toggleTheme()" title="Cambiar tema visual" class="p-2 sm:p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-navy-850 dark:hover:bg-slate-800 text-slate-600 dark:text-amber-400 border border-slate-200 dark:border-slate-700 transition cursor-pointer shrink-0">
                         <i id="theme-icon" class="fa-solid fa-sun text-sm"></i>
                     </button>
                 </div>
@@ -249,7 +249,7 @@
                     </div>
 
                     <div class="pt-3 flex justify-end">
-                        <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/25 transition cursor-pointer">
+                        <button type="submit" id="btn-submit-s1" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/25 transition cursor-pointer">
                             <i class="fa-solid fa-floppy-disk"></i>
                             Inscribir Docente en PromoHealth
                         </button>
@@ -562,12 +562,12 @@
 
                 <!-- Tabla Consolidada -->
                 <div class="bg-white dark:bg-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-                    <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
-                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Consolidado General de Tamizaje en Vivo</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400">Sincronización automática en tiempo real con todos los stands</p>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Consolidado General de Tamizaje en Vivo</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Gestión exclusiva del Coordinador: impresión, edición de datos y depuración de registros</p>
                         </div>
-                        <button onclick="downloadCSVExport()" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition cursor-pointer">
+                        <button type="button" onclick="downloadCSVExport()" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition cursor-pointer shrink-0">
                             <i class="fa-solid fa-file-excel"></i>
                             Exportar Base a Excel (CSV)
                         </button>
@@ -610,66 +610,66 @@
             <div class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                     <h3 class="text-lg font-bold text-slate-900 dark:text-white">Seleccionar Estación de Trabajo</h3>
-                    <button onclick="closeStationModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">
+                    <button type="button" onclick="closeStationModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
                 <p class="text-xs text-slate-500 dark:text-slate-400">Elige el stand asignado a este computador, tableta o teléfono móvil:</p>
                 <div class="grid grid-cols-1 gap-2 max-h-[60vh] overflow-y-auto pr-1">
-                    <button onclick="setStation('stand-1')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-500/10 text-left transition cursor-pointer">
+                    <button type="button" onclick="setStation('stand-1')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-500/10 text-left transition cursor-pointer">
                         <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold text-xs">S1</span>
                         <div>
                             <div class="font-bold text-sm text-slate-900 dark:text-white">Stand 1: Admisión e Inscripción</div>
                             <div class="text-[11px] text-slate-500">Registro inicial, hábitos y antecedentes</div>
                         </div>
                     </button>
-                    <button onclick="setStation('stand-2')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-orange-500 hover:bg-orange-500/10 text-left transition cursor-pointer">
+                    <button type="button" onclick="setStation('stand-2')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-orange-500 hover:bg-orange-500/10 text-left transition cursor-pointer">
                         <span class="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-500 flex items-center justify-center font-bold text-xs">S2</span>
                         <div>
                             <div class="font-bold text-sm text-slate-900 dark:text-white">Stand 2: Temperatura Corporal</div>
                             <div class="text-[11px] text-slate-500">Termometría y clasificación térmica (°C)</div>
                         </div>
                     </button>
-                    <button onclick="setStation('stand-3')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-sky-500 hover:bg-sky-500/10 text-left transition cursor-pointer">
+                    <button type="button" onclick="setStation('stand-3')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-sky-500 hover:bg-sky-500/10 text-left transition cursor-pointer">
                         <span class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-500 flex items-center justify-center font-bold text-xs">S3</span>
                         <div>
                             <div class="font-bold text-sm text-slate-900 dark:text-white">Stand 3: Oximetría y Pulso</div>
                             <div class="text-[11px] text-slate-500">Saturación SpO2 (%) y frecuencia cardíaca (LPM)</div>
                         </div>
                     </button>
-                    <button onclick="setStation('stand-4')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-indigo-500 hover:bg-indigo-500/10 text-left transition cursor-pointer">
+                    <button type="button" onclick="setStation('stand-4')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-indigo-500 hover:bg-indigo-500/10 text-left transition cursor-pointer">
                         <span class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-500 flex items-center justify-center font-bold text-xs">S4</span>
                         <div>
                             <div class="font-bold text-sm text-slate-900 dark:text-white">Stand 4: Antropometría (IMC)</div>
                             <div class="text-[11px] text-slate-500">Peso, talla y cálculo de índice de masa corporal</div>
                         </div>
                     </button>
-                    <button onclick="setStation('stand-5')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-rose-500 hover:bg-rose-500/10 text-left transition cursor-pointer">
+                    <button type="button" onclick="setStation('stand-5')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-rose-500 hover:bg-rose-500/10 text-left transition cursor-pointer">
                         <span class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-500 flex items-center justify-center font-bold text-xs">S5</span>
                         <div>
                             <div class="font-bold text-sm text-slate-900 dark:text-white">Stand 5: Presión Arterial</div>
                             <div class="text-[11px] text-slate-500">Tensiómetro sistólico/diastólico (AHA)</div>
                         </div>
                     </button>
-                    <button onclick="setStation('stand-6')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-purple-500 hover:bg-purple-500/10 text-left transition cursor-pointer">
+                    <button type="button" onclick="setStation('stand-6')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-purple-500 hover:bg-purple-500/10 text-left transition cursor-pointer">
                         <span class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-500 flex items-center justify-center font-bold text-xs">S6</span>
                         <div>
                             <div class="font-bold text-sm text-slate-900 dark:text-white">Stand 6: Glucometría</div>
                             <div class="text-[11px] text-slate-500">Glicemia capilar en ayunas o postprandial</div>
                         </div>
                     </button>
-                    <button onclick="setStation('stand-7')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-teal-500 hover:bg-teal-500/10 text-left transition cursor-pointer">
+                    <button type="button" onclick="setStation('stand-7')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-teal-500 hover:bg-teal-500/10 text-left transition cursor-pointer">
                         <span class="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-500 flex items-center justify-center font-bold text-xs">S7</span>
                         <div>
                             <div class="font-bold text-sm text-slate-900 dark:text-white">Stand 7: Auditoría, IA y Entrega</div>
                             <div class="text-[11px] text-slate-500">Análisis clínico con IA e impresión de carnet PDF</div>
                         </div>
                     </button>
-                    <button onclick="setStation('dashboard')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-amber-500 hover:bg-amber-500/10 text-left transition cursor-pointer">
+                    <button type="button" onclick="setStation('dashboard')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-amber-500 hover:bg-amber-500/10 text-left transition cursor-pointer">
                         <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-500 flex items-center justify-center font-bold text-xs"><i class="fa-solid fa-chart-pie"></i></span>
                         <div>
                             <div class="font-bold text-sm text-slate-900 dark:text-white">Tablero General (Coordinador)</div>
-                            <div class="text-[11px] text-slate-500">Monitoreo global en vivo y exportación a Excel</div>
+                            <div class="text-[11px] text-slate-500">Monitoreo global en vivo, edición y exportación a Excel</div>
                         </div>
                     </button>
                 </div>
@@ -686,7 +686,7 @@
                         <i class="fa-solid fa-wand-magic-sparkles text-indigo-500"></i>
                         Configuración de Agente IA Gemini
                     </h3>
-                    <button onclick="closeGeminiKeyModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">
+                    <button type="button" onclick="closeGeminiKeyModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -698,8 +698,8 @@
                     <input type="password" id="input-gemini-key" placeholder="AIzaSy..." class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
-                    <button onclick="closeGeminiKeyModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer">Cancelar</button>
-                    <button onclick="saveGeminiKey()" class="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer">Guardar Clave</button>
+                    <button type="button" onclick="closeGeminiKeyModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer">Cancelar</button>
+                    <button type="button" onclick="saveGeminiKey()" class="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer">Guardar Clave</button>
                 </div>
             </div>
         </div>
@@ -715,16 +715,137 @@
                         <span class="truncate">Vista Previa del Carnet</span>
                     </h3>
                     <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                        <button onclick="triggerPrintCarnet()" class="px-3 sm:px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer">
+                        <button type="button" onclick="triggerPrintCarnet()" class="px-3 sm:px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer">
                             <i class="fa-solid fa-print mr-1"></i> Imprimir
                         </button>
-                        <button onclick="closePreviewModal()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">
+                        <button type="button" onclick="closePreviewModal()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">
                             <i class="fa-solid fa-xmark text-lg"></i>
                         </button>
                     </div>
                 </div>
                 <div id="preview-modal-body" class="p-2.5 sm:p-6 overflow-y-auto overflow-x-auto bg-slate-200 dark:bg-slate-950">
                     <!-- Clon limpio del reporte -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- MODAL 4: EDITAR DATOS DEL DOCENTE (EXCLUSIVO DASHBOARD)           -->
+        <!-- ================================================================= -->
+        <div id="modal-edit-patient" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-xl w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+                <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-user-pen text-blue-500"></i>
+                        Editar Registro del Docente
+                    </h3>
+                    <button type="button" onclick="closeEditPatientModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <form id="form-edit-patient" onsubmit="submitEditPatient(event)" class="space-y-4">
+                    <input type="hidden" id="edit-original-doc">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Documento / Cédula *</label>
+                            <input type="text" id="edit-doc" inputmode="numeric" required class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Nombre Completo *</label>
+                            <input type="text" id="edit-name" required class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Edad (Años) *</label>
+                            <input type="number" id="edit-age" inputmode="numeric" min="18" max="95" required class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Sexo Biológico *</label>
+                            <select id="edit-gender" required class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="Femenino">Femenino</option>
+                                <option value="Masculino">Masculino</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Área / Asignatura</label>
+                            <input type="text" id="edit-area" class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Tabaquismo</label>
+                            <select id="edit-smoking" class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="No fuma">No fuma</option>
+                                <option value="Exfumador">Exfumador</option>
+                                <option value="Fumador activo">Fumador activo</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Actividad Física</label>
+                            <select id="edit-activity" class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="Sedentario (< 150 min/sem)">Sedentario (&lt; 150 min/sem)</option>
+                                <option value="Moderada (150-300 min/sem)">Moderada (150-300 min/sem)</option>
+                                <option value="Activa (> 300 min/sem)">Activa (&gt; 300 min/sem)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Antecedentes</label>
+                            <select id="edit-history" class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="Ninguno conocido">Ninguno conocido</option>
+                                <option value="Hipertensión previa">Hipertensión previa</option>
+                                <option value="Diabetes previa">Diabetes previa</option>
+                                <option value="Hipertensión y Diabetes">Hipertensión y Diabetes</option>
+                                <option value="Otro antecedente">Otro antecedente</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
+                        <button type="button" onclick="closeEditPatientModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer">
+                            Cancelar
+                        </button>
+                        <button type="submit" id="btn-save-edit" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 cursor-pointer">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- MODAL 5: CONFIRMAR ELIMINACIÓN (EXCLUSIVO DASHBOARD)              -->
+        <!-- ================================================================= -->
+        <div id="modal-delete-patient" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-full bg-rose-500/15 text-rose-500 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white">¿Eliminar registro del docente?</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Esta acción borrará sus datos de Supabase de forma permanente.</p>
+                    </div>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-navy-950 border border-slate-200 dark:border-slate-800 text-xs space-y-1">
+                    <div class="font-bold text-sm text-slate-900 dark:text-white" id="delete-patient-name">--</div>
+                    <div class="text-slate-500 dark:text-slate-400" id="delete-patient-doc">Documento: --</div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-2">
+                    <button type="button" onclick="closeDeletePatientModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button type="button" id="btn-confirm-delete" onclick="confirmDeletePatient()" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-600/25 cursor-pointer">
+                        <i class="fa-solid fa-trash-can"></i>
+                        Sí, Eliminar Registro
+                    </button>
                 </div>
             </div>
         </div>
@@ -747,7 +868,7 @@
                     </div>
                     <div>
                         <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Promo<span class="text-emerald-600">Health</span></h1>
-                        <p class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Feria Centros de Interés • Guardianes de Vida</p>
+                        <p class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Feria Centros de Interés • Guardianes de la Vida</p>
                     </div>
                 </div>
                 <div class="text-right text-xs text-slate-600">
@@ -826,7 +947,7 @@
             </div>
 
             <div class="mt-6 pt-3 border-t border-slate-200 text-[10px] text-slate-500 flex justify-between items-center">
-                <span>Nota: Este tamizaje escolar es preventivo y educativo; no reemplaza una consulta médica diagnóstica.</span>
+                <span>Nota: Este tamizaje escolar es preventivo y educativo; solo es para evaluar competencias específicas y no es un diagnóstico medico.</span>
                 <span class="font-bold text-slate-700">PromoHealth • @resma</span>
             </div>
         </div>
@@ -836,7 +957,7 @@
     <!-- LÓGICA DE APLICACIÓN, SUPABASE REALTIME Y MOTOR CLÍNICO               -->
     <!-- ===================================================================== -->
     <script>
-        // --- 1. CREDENCIALES SUPABASE INTEGRADOS ---
+        // --- 1. CREDENCIALES SUPABASE INTEGRADAS ---
         const DEFAULT_SUPABASE_URL = "https://dlrcgqpuzxbgjdrjouwd.supabase.co";
         const DEFAULT_SUPABASE_KEY = "sb_publishable_SThDTpHg5tgIUtbWbu7dRw_WXpUCVgn";
 
@@ -846,6 +967,7 @@
         let pollInterval = null;
         let patients = [];
         let selectedDoc = null;
+        let pendingDeleteDoc = null;
         let currentStation = 'stand-1';
         let geminiApiKey = localStorage.getItem('promohealth_gemini_key') || '';
 
@@ -868,6 +990,17 @@
             initSupabaseClient();
             updateAIEnginePill();
             bindFormDirtyListeners();
+
+            // Cerrar cualquier modal con la tecla Escape
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeStationModal();
+                    closeGeminiKeyModal();
+                    closePreviewModal();
+                    closeEditPatientModal();
+                    closeDeletePatientModal();
+                }
+            });
         });
 
         // Protección contra sobrescritura mientras el usuario edita campos
@@ -983,8 +1116,6 @@
                         }
                     });
             } catch (wsErr) {
-                // En entornos sandbox (como vista previa Canvas) los WebSockets pueden estar restringidos;
-                // la sincronización continúa operando automáticamente vía HTTPS polling cada 4s.
                 console.info("WebSocket Realtime no disponible en este entorno; operando vía sincronización HTTPS.", wsErr.message);
             }
         }
@@ -992,21 +1123,28 @@
         function handleRealtimeEvent(payload) {
             const { eventType, new: newRecord, old: oldRecord } = payload;
             if (eventType === 'INSERT' && newRecord) {
-                const exists = patients.some(p => p.documento === newRecord.documento);
+                const exists = patients.some(p => (p.id && newRecord.id && p.id === newRecord.id) || p.documento === newRecord.documento);
                 if (!exists) patients.unshift(newRecord);
             } else if (eventType === 'UPDATE' && newRecord) {
-                const idx = patients.findIndex(p => p.documento === newRecord.documento);
+                const idx = patients.findIndex(p => (p.id && newRecord.id && p.id === newRecord.id) || p.documento === newRecord.documento);
                 if (idx !== -1) patients[idx] = newRecord;
                 else patients.unshift(newRecord);
             } else if (eventType === 'DELETE' && oldRecord) {
-                patients = patients.filter(p => p.id !== oldRecord.id);
+                patients = patients.filter(p => {
+                    if (p.id && oldRecord.id) return p.id !== oldRecord.id;
+                    return p.documento !== oldRecord.documento;
+                });
+                if (selectedDoc && ((selectedDoc.id && oldRecord.id && selectedDoc.id === oldRecord.id) || selectedDoc.documento === oldRecord.documento)) {
+                    selectedDoc = null;
+                    clearAllStandForms();
+                }
             }
 
-            updateUIState();
-            if (selectedDoc && newRecord && selectedDoc.documento === newRecord.documento) {
+            if (selectedDoc && newRecord && ((selectedDoc.id && newRecord.id && selectedDoc.id === newRecord.id) || selectedDoc.documento === newRecord.documento)) {
                 selectedDoc = newRecord;
                 populateCurrentPatientForms(false);
             }
+            updateUIState();
         }
 
         async function fetchCloudPatients(showLoader = false) {
@@ -1024,16 +1162,19 @@
 
                 patients = data || [];
                 updateConnectionStatusBadge('PromoHealth Conectado', true);
-                updateUIState();
 
                 if (selectedDoc) {
-                    const fresh = patients.find(p => p.documento === selectedDoc.documento);
+                    const fresh = patients.find(p => (p.id && selectedDoc.id && p.id === selectedDoc.id) || p.documento === selectedDoc.documento);
                     if (fresh) {
                         selectedDoc = fresh;
                         populateCurrentPatientForms(false);
+                    } else {
+                        selectedDoc = null;
+                        clearAllStandForms();
                     }
                 }
 
+                updateUIState();
                 if (showLoader) showToast('Datos sincronizados con la nube', 'success');
             } catch (err) {
                 console.error("Error cargando pacientes:", err);
@@ -1048,10 +1189,10 @@
             const badge = document.getElementById('conn-badge');
             if (!badge) return;
             if (isOnline) {
-                badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30';
+                badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 whitespace-nowrap';
                 badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>${text}`;
             } else {
-                badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30';
+                badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 whitespace-nowrap';
                 badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>${text}`;
             }
         }
@@ -1098,6 +1239,7 @@
 
             filterPatientSelect();
             renderPatientRibbon();
+            if (currentStation === 'stand-7') renderStand7AuditBadges();
             if (currentStation === 'dashboard') renderDashboardMetrics();
         }
 
@@ -1302,6 +1444,9 @@
                 return showToast('Completa los campos obligatorios', 'error');
             }
 
+            const btn = document.getElementById('btn-submit-s1');
+            if (btn) btn.disabled = true;
+
             try {
                 const payload = {
                     documento: doc,
@@ -1333,6 +1478,8 @@
                 showToast(`Docente ${name} inscrito correctamente`, 'success');
             } catch (err) {
                 showToast(err.message || 'Error al registrar docente', 'error');
+            } finally {
+                if (btn) btn.disabled = false;
             }
         }
 
@@ -1865,7 +2012,8 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
                 </tr>
             `;
 
-            const liveNotes = document.getElementById('s7-notes')?.value.trim();
+            // Solo usar el texto en vivo de #s7-notes si el usuario está situado en el Stand 7
+            const liveNotes = currentStation === 'stand-7' ? document.getElementById('s7-notes')?.value.trim() : '';
             const finalNotes = liveNotes || p.observaciones_finales || 'Sin observaciones registradas.';
             document.getElementById('print-notes').textContent = finalNotes;
         }
@@ -1893,17 +2041,20 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
             if (!selectedDoc) return showToast('Selecciona primero a un docente', 'error');
             closePreviewModal();
 
-            const liveNotes = document.getElementById('s7-notes')?.value.trim();
-            if (liveNotes && liveNotes !== selectedDoc.observaciones_finales) {
-                selectedDoc.observaciones_finales = liveNotes;
-                if (supabaseClient) {
-                    try {
-                        await supabaseClient.from('feria_pacientes')
-                            .update({ observaciones_finales: liveNotes, completado: true })
-                            .eq('documento', selectedDoc.documento);
-                        resetFormDirtyFlags();
-                    } catch (e) {
-                        console.warn('No se pudo sincronizar la nota previa a imprimir:', e);
+            // Solo sincronizar #s7-notes si estamos activamente en el Stand 7
+            if (currentStation === 'stand-7') {
+                const liveNotes = document.getElementById('s7-notes')?.value.trim();
+                if (liveNotes && liveNotes !== selectedDoc.observaciones_finales) {
+                    selectedDoc.observaciones_finales = liveNotes;
+                    if (supabaseClient) {
+                        try {
+                            await supabaseClient.from('feria_pacientes')
+                                .update({ observaciones_finales: liveNotes, completado: true })
+                                .eq('documento', selectedDoc.documento);
+                            resetFormDirtyFlags();
+                        } catch (e) {
+                            console.warn('No se pudo sincronizar la nota previa a imprimir:', e);
+                        }
                     }
                 }
             }
@@ -1912,7 +2063,7 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
             setTimeout(() => window.print(), 180);
         }
 
-        // --- 12. DASHBOARD Y EXPORTACIÓN CSV ---
+        // --- 12. DASHBOARD, EDICIÓN, ELIMINACIÓN Y EXPORTACIÓN CSV ---
         function renderDashboardMetrics() {
             const total = patients.length;
             let completed = 0;
@@ -1949,17 +2100,25 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
                 <tr class="hover:bg-slate-50 dark:hover:bg-navy-850/60 transition">
                     <td class="py-3 px-4">
                         <div class="font-bold text-slate-900 dark:text-white">${escapeHTML(p.nombre_docente)}</div>
-                        <div class="text-xs text-slate-500">C.C. ${safeDocAttr} • ${escapeHTML(p.edad)}a</div>
+                        <div class="text-xs text-slate-500">C.C. ${safeDocAttr} • ${escapeHTML(p.edad)}a ${p.area ? '• ' + escapeHTML(p.area) : ''}</div>
                     </td>
-                    <td class="py-3 px-3 text-xs font-semibold">${hasVal(p.temperatura) ? escapeHTML(p.temperatura) + ' °C' : '<span class="text-slate-400">--</span>'}</td>
-                    <td class="py-3 px-3 text-xs font-semibold">${hasVal(p.oximetria) ? `${escapeHTML(p.oximetria)}% / ${escapeHTML(p.frecuencia_cardiaca ?? '--')} LPM` : '<span class="text-slate-400">--</span>'}</td>
-                    <td class="py-3 px-3 text-xs font-semibold">${hasVal(p.imc) ? escapeHTML(p.imc) : '<span class="text-slate-400">--</span>'}</td>
-                    <td class="py-3 px-3 text-xs font-semibold">${hasVal(p.presion_sistolica) ? `${escapeHTML(p.presion_sistolica)}/${escapeHTML(p.presion_diastolica)}` : '<span class="text-slate-400">--</span>'}</td>
-                    <td class="py-3 px-3 text-xs font-semibold">${hasVal(p.glucometria) ? `${escapeHTML(p.glucometria)} mg/dL` : '<span class="text-slate-400">--</span>'}</td>
-                    <td class="py-3 px-4 text-right">
-                        <button data-doc="${safeDocAttr}" onclick="openCarnetFromDashboard(this.dataset.doc)" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600/15 text-emerald-500 hover:bg-emerald-600 hover:text-white transition cursor-pointer">
-                            <i class="fa-solid fa-print mr-1"></i> Carnet
-                        </button>
+                    <td class="py-3 px-3 text-xs font-semibold whitespace-nowrap">${hasVal(p.temperatura) ? escapeHTML(p.temperatura) + ' °C' : '<span class="text-slate-400">--</span>'}</td>
+                    <td class="py-3 px-3 text-xs font-semibold whitespace-nowrap">${hasVal(p.oximetria) ? `${escapeHTML(p.oximetria)}% / ${escapeHTML(p.frecuencia_cardiaca ?? '--')} LPM` : '<span class="text-slate-400">--</span>'}</td>
+                    <td class="py-3 px-3 text-xs font-semibold whitespace-nowrap">${hasVal(p.imc) ? escapeHTML(p.imc) : '<span class="text-slate-400">--</span>'}</td>
+                    <td class="py-3 px-3 text-xs font-semibold whitespace-nowrap">${hasVal(p.presion_sistolica) ? `${escapeHTML(p.presion_sistolica)}/${escapeHTML(p.presion_diastolica)}` : '<span class="text-slate-400">--</span>'}</td>
+                    <td class="py-3 px-3 text-xs font-semibold whitespace-nowrap">${hasVal(p.glucometria) ? `${escapeHTML(p.glucometria)} mg/dL` : '<span class="text-slate-400">--</span>'}</td>
+                    <td class="py-3 px-4 text-right whitespace-nowrap">
+                        <div class="inline-flex items-center justify-end gap-1.5">
+                            <button type="button" data-doc="${safeDocAttr}" onclick="openCarnetFromDashboard(this.dataset.doc)" title="Ver e imprimir Carnet" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600/15 text-emerald-500 hover:bg-emerald-600 hover:text-white transition cursor-pointer">
+                                <i class="fa-solid fa-print sm:mr-1"></i><span class="hidden sm:inline">Carnet</span>
+                            </button>
+                            <button type="button" data-doc="${safeDocAttr}" onclick="openEditPatientModal(this.dataset.doc)" title="Editar datos del docente" class="p-1.5 px-2.5 rounded-lg text-xs font-bold bg-blue-500/15 text-blue-500 hover:bg-blue-600 hover:text-white transition cursor-pointer">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button type="button" data-doc="${safeDocAttr}" onclick="openDeletePatientModal(this.dataset.doc)" title="Eliminar registro" class="p-1.5 px-2.5 rounded-lg text-xs font-bold bg-rose-500/15 text-rose-500 hover:bg-rose-600 hover:text-white transition cursor-pointer">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `}).join('');
@@ -1968,6 +2127,143 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
         function openCarnetFromDashboard(doc) {
             selectedDoc = patients.find(p => p.documento === doc) || null;
             if (selectedDoc) previewCarnetModal();
+        }
+
+        // --- FUNCIONES DE EDICIÓN EN EL DASHBOARD ---
+        function openEditPatientModal(docNumber) {
+            const p = patients.find(item => item.documento === docNumber);
+            if (!p) return showToast('No se encontró el registro del docente', 'error');
+
+            document.getElementById('edit-original-doc').value = p.documento;
+            document.getElementById('edit-doc').value = p.documento || '';
+            document.getElementById('edit-name').value = p.nombre_docente || '';
+            document.getElementById('edit-age').value = p.edad ?? '';
+            document.getElementById('edit-gender').value = p.sexo || 'Femenino';
+            document.getElementById('edit-area').value = p.area || '';
+            document.getElementById('edit-smoking').value = p.tabaquismo || 'No fuma';
+            document.getElementById('edit-activity').value = p.actividad_fisica || 'Sedentario (< 150 min/sem)';
+            document.getElementById('edit-history').value = p.antecedente_previo || 'Ninguno conocido';
+
+            document.getElementById('modal-edit-patient')?.classList.remove('hidden');
+        }
+
+        function closeEditPatientModal() {
+            document.getElementById('modal-edit-patient')?.classList.add('hidden');
+        }
+
+        async function submitEditPatient(e) {
+            e.preventDefault();
+            if (!supabaseClient) return showToast('Sin conexión con Supabase', 'error');
+
+            const originalDoc = document.getElementById('edit-original-doc').value.trim();
+            const newDoc = document.getElementById('edit-doc').value.trim();
+            const name = document.getElementById('edit-name').value.trim();
+            const age = parseInt(document.getElementById('edit-age').value, 10);
+            const gender = document.getElementById('edit-gender').value;
+            const area = document.getElementById('edit-area').value.trim();
+            const smoking = document.getElementById('edit-smoking').value;
+            const activity = document.getElementById('edit-activity').value;
+            const history = document.getElementById('edit-history').value;
+
+            if (!newDoc || !name || isNaN(age)) {
+                return showToast('Verifica cédula, nombre y edad', 'error');
+            }
+
+            if (newDoc !== originalDoc && patients.some(p => p.documento === newDoc)) {
+                return showToast(`Ya existe otro docente con el documento ${newDoc}`, 'error');
+            }
+
+            const btn = document.getElementById('btn-save-edit');
+            if (btn) btn.disabled = true;
+
+            try {
+                const updates = {
+                    documento: newDoc,
+                    nombre_docente: name,
+                    edad: age,
+                    sexo: gender,
+                    area: area || null,
+                    tabaquismo: smoking,
+                    actividad_fisica: activity,
+                    antecedente_previo: history
+                };
+
+                const { data, error } = await supabaseClient
+                    .from('feria_pacientes')
+                    .update(updates)
+                    .eq('documento', originalDoc)
+                    .select();
+
+                if (error) throw error;
+
+                if (data && data[0]) {
+                    const updatedRecord = data[0];
+                    // Eliminar posibles duplicados si el evento Realtime llegó milisegundos antes
+                    patients = patients.filter(p => p.documento !== originalDoc && p.documento !== newDoc && (!p.id || p.id !== updatedRecord.id));
+                    patients.unshift(updatedRecord);
+
+                    if (selectedDoc && (selectedDoc.documento === originalDoc || (selectedDoc.id && selectedDoc.id === updatedRecord.id))) {
+                        selectedDoc = updatedRecord;
+                    }
+                } else {
+                    await fetchCloudPatients(false);
+                }
+
+                closeEditPatientModal();
+                updateUIState();
+                showToast(`Registro de ${name} actualizado`, 'success');
+            } catch (err) {
+                showToast(err.message || 'Error al actualizar el registro', 'error');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        // --- FUNCIONES DE ELIMINACIÓN CON CONFIRMACIÓN EN EL DASHBOARD ---
+        function openDeletePatientModal(docNumber) {
+            const p = patients.find(item => item.documento === docNumber);
+            if (!p) return showToast('No se encontró el registro', 'error');
+
+            pendingDeleteDoc = p.documento;
+            document.getElementById('delete-patient-name').textContent = p.nombre_docente;
+            document.getElementById('delete-patient-doc').textContent = `Documento C.C. ${p.documento} • ${p.edad} años`;
+            document.getElementById('modal-delete-patient')?.classList.remove('hidden');
+        }
+
+        function closeDeletePatientModal() {
+            pendingDeleteDoc = null;
+            document.getElementById('modal-delete-patient')?.classList.add('hidden');
+        }
+
+        async function confirmDeletePatient() {
+            if (!pendingDeleteDoc || !supabaseClient) return;
+
+            const docToDelete = pendingDeleteDoc;
+            const btn = document.getElementById('btn-confirm-delete');
+            if (btn) btn.disabled = true;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('feria_pacientes')
+                    .delete()
+                    .eq('documento', docToDelete);
+
+                if (error) throw error;
+
+                patients = patients.filter(p => p.documento !== docToDelete);
+                if (selectedDoc && selectedDoc.documento === docToDelete) {
+                    selectedDoc = null;
+                    clearAllStandForms();
+                }
+
+                closeDeletePatientModal();
+                updateUIState();
+                showToast('Registro eliminado permanentemente', 'success');
+            } catch (err) {
+                showToast(err.message || 'No se pudo eliminar el registro', 'error');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
         }
 
         function escapeCSV(val) {
