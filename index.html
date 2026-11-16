@@ -34,14 +34,21 @@
             overflow-x: hidden;
         }
 
-        /* Evitar auto-zoom en iOS al enfocar inputs en móvil */
         @media screen and (max-width: 640px) {
             input, select, textarea {
                 font-size: 16px !important;
             }
         }
 
-        /* Estilos exclusivos de impresión / exportación PDF */
+        @keyframes popIn {
+            0% { transform: scale(0.85); opacity: 0; }
+            60% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop-in {
+            animation: popIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
         #printable-report-container {
             display: none;
         }
@@ -59,7 +66,7 @@
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-            #app-root {
+            #app-root, #app-lock-screen {
                 display: none !important;
             }
             #printable-report-container {
@@ -74,15 +81,60 @@
 </head>
 <body class="bg-slate-100 text-slate-800 dark:bg-navy-950 dark:text-slate-100 min-h-screen flex flex-col">
 
-    <!-- ===================================================================== -->
-    <!-- CONTENEDOR PRINCIPAL DE LA APLICACIÓN WEB (#app-root)                 -->
-    <!-- ===================================================================== -->
-    <div id="app-root" class="flex-1 flex flex-col">
+    <!-- PANTALLA DE BLOQUEO INICIAL POR PIN (#app-lock-screen) -->
+    <div id="app-lock-screen" class="fixed inset-0 z-[60] bg-slate-100 dark:bg-navy-950 flex flex-col items-center justify-center p-4">
+        <div class="w-full max-w-md bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center relative overflow-hidden">
+            <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500"></div>
+
+            <div class="w-20 h-20 mx-auto rounded-2xl bg-white dark:bg-navy-850 border border-slate-200 dark:border-slate-700 p-2 shadow-lg flex items-center justify-center">
+                <img src="https://i.imgur.com/pfn6Cpv.png" alt="Logo PromoHealth" class="w-full h-full object-contain" onerror="if(!this.dataset.triedJpg){this.dataset.triedJpg='1';this.src='https://i.imgur.com/pfn6Cpv.jpg';}else{this.style.display='none';this.nextElementSibling.classList.remove('hidden');}">
+                <i class="fa-solid fa-heart-pulse text-3xl text-emerald-500 hidden"></i>
+            </div>
+
+            <div class="space-y-1.5">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                    <i class="fa-solid fa-lock"></i> Acceso Protegido en Nube
+                </span>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                    Promo<span class="text-emerald-500">Health</span>
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                    Circuito de Tamizaje y Prevención en Salud Escolar
+                </p>
+            </div>
+
+            <form onsubmit="submitInitialAppUnlock(event)" class="space-y-4 text-left">
+                <div>
+                    <label for="initial-app-pin" class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-2 text-center">
+                        Ingresa el PIN de la Jornada para Entrar
+                    </label>
+                    <input type="password" id="initial-app-pin" inputmode="numeric" maxlength="8" required placeholder="••••" autocomplete="off" class="w-full px-4 py-3.5 rounded-2xl text-center text-2xl font-extrabold tracking-[0.5em] bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                    <p id="lock-screen-error" class="hidden text-xs font-bold text-rose-500 text-center mt-2">
+                        <i class="fa-solid fa-circle-exclamation mr-1"></i>PIN inválido. Solicita el código vigente al Coordinador.
+                    </p>
+                </div>
+
+                <button type="submit" id="btn-initial-unlock" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/25 transition cursor-pointer">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <span id="btn-initial-unlock-label">Ingresar a PromoHealth</span>
+                </button>
+            </form>
+
+            <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                <span><i class="fa-solid fa-cloud mr-1 text-emerald-500"></i>PIN sincronizado en tiempo real</span>
+                <button type="button" onclick="toggleTheme()" class="hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer">
+                    <i class="fa-solid fa-circle-half-stroke mr-1"></i>Cambiar Tema
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENEDOR PRINCIPAL DE LA APLICACIÓN WEB (#app-root) -->
+    <div id="app-root" class="hidden flex-1 flex flex-col">
 
         <!-- BARRA SUPERIOR DE NAVEGACIÓN -->
         <header class="sticky top-0 z-40 bg-white/95 dark:bg-navy-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 shadow-sm">
             <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-0 sm:h-16 flex flex-wrap items-center justify-between gap-2">
-                <!-- Marca PromoHealth -->
                 <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-navy-850 border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center shadow-md shrink-0">
                         <img src="https://i.imgur.com/pfn6Cpv.png" alt="Logo PromoHealth" class="w-full h-full object-contain p-0.5" onerror="if(!this.dataset.triedJpg){this.dataset.triedJpg='1';this.src='https://i.imgur.com/pfn6Cpv.jpg';}else{this.style.display='none';this.nextElementSibling.classList.remove('hidden');}">
@@ -102,23 +154,23 @@
                     </div>
                 </div>
 
-                <!-- Controles Rápidos -->
                 <div class="flex items-center gap-1.5 sm:gap-2 ml-auto">
-                    <!-- Selector de Rol / Stand -->
-                    <button type="button" onclick="openStationModal()" class="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 transition cursor-pointer max-w-[165px] sm:max-w-none">
+                    <button type="button" onclick="openStationModal()" class="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 transition cursor-pointer max-w-[155px] sm:max-w-none">
                         <i class="fa-solid fa-location-dot shrink-0"></i>
                         <span id="current-station-label" class="truncate">Stand 1: Admisión</span>
                         <i class="fa-solid fa-chevron-down text-[10px] opacity-80 shrink-0"></i>
                     </button>
 
-                    <!-- Sincronizar Manual -->
                     <button type="button" onclick="fetchCloudPatients(true)" title="Sincronizar datos en vivo" class="p-2 sm:p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-navy-850 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer shrink-0">
                         <i id="sync-icon" class="fa-solid fa-rotate text-sm"></i>
                     </button>
 
-                    <!-- Alternar Tema Claro/Oscuro -->
                     <button type="button" onclick="toggleTheme()" title="Cambiar tema visual" class="p-2 sm:p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-navy-850 dark:hover:bg-slate-800 text-slate-600 dark:text-amber-400 border border-slate-200 dark:border-slate-700 transition cursor-pointer shrink-0">
                         <i id="theme-icon" class="fa-solid fa-sun text-sm"></i>
+                    </button>
+
+                    <button type="button" onclick="lockEntireApplication()" title="Bloquear aplicación y pedir PIN" class="p-2 sm:p-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-500 hover:text-white border border-rose-500/25 transition cursor-pointer shrink-0">
+                        <i class="fa-solid fa-lock text-sm"></i>
                     </button>
                 </div>
             </div>
@@ -127,7 +179,7 @@
         <!-- CONTENIDO PRINCIPAL -->
         <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
 
-            <!-- SELECTOR DE PARTICIPANTE ACTIVO (Visible en Stands 2 al 7) -->
+            <!-- SELECTOR DE PARTICIPANTE ACTIVO -->
             <section id="participant-picker-card" class="hidden bg-white dark:bg-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 sm:p-5 shadow-sm">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div class="flex-1 space-y-2">
@@ -139,15 +191,13 @@
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
-                            <!-- Buscador por Documento o Nombre -->
                             <div class="sm:col-span-5 relative">
                                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                                <input type="text" id="patient-search-input" oninput="filterPatientSelect()" onkeydown="handleSearchKeydown(event)" placeholder="Filtrar por documento, nombre o rol..." class="w-full pl-9 pr-3 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                                <input type="text" id="patient-search-input" oninput="filterPatientSelect()" onkeydown="handleSearchKeydown(event)" placeholder="Filtrar por documento, nombre o rol..." class="w-full pl-9 pr-3 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
                             </div>
 
-                            <!-- Desplegable de Participantes -->
                             <div class="sm:col-span-7">
-                                <select id="patient-select" onchange="onSelectPatient(this.value)" class="w-full px-3.5 py-2.5 rounded-xl text-sm font-medium bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                                <select id="patient-select" onchange="onSelectPatient(this.value)" class="w-full px-3.5 py-2.5 rounded-xl text-sm font-medium bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
                                     <option value="">-- Selecciona el Participante en este Stand --</option>
                                 </select>
                             </div>
@@ -155,7 +205,6 @@
                     </div>
                 </div>
 
-                <!-- Cinta de Identificación del Participante Seleccionado -->
                 <div id="selected-patient-ribbon" class="hidden mt-3.5 pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                     <div class="flex items-center gap-2.5 min-w-0">
                         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm sm:text-base shrink-0">
@@ -174,9 +223,7 @@
                 </div>
             </section>
 
-            <!-- ================================================================= -->
-            <!-- STAND 1: ADMISIÓN E INSCRIPCIÓN                                   -->
-            <!-- ================================================================= -->
+            <!-- STAND 1: ADMISIÓN E INSCRIPCIÓN -->
             <section id="pane-stand-1" class="stand-pane bg-white dark:bg-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-7 shadow-sm">
                 <div class="flex items-center gap-3 mb-5 pb-3.5 border-b border-slate-200 dark:border-slate-800">
                     <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center text-lg sm:text-xl shrink-0">
@@ -267,9 +314,7 @@
                 </form>
             </section>
 
-            <!-- ================================================================= -->
-            <!-- STAND 2: TEMPERATURA CORPORAL                                     -->
-            <!-- ================================================================= -->
+            <!-- STAND 2: TEMPERATURA CORPORAL -->
             <section id="pane-stand-2" class="stand-pane hidden bg-white dark:bg-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-7 shadow-sm">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
                     <div class="w-11 h-11 rounded-xl bg-orange-500/15 text-orange-500 flex items-center justify-center text-xl">
@@ -285,8 +330,8 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-2">Temperatura Axilar / Frontal (°C) *</label>
-                            <input type="number" step="0.1" id="s2-temp" inputmode="decimal" min="32" max="43" oninput="evalLiveTemp(this.value)" required placeholder="Ej. 36.5" class="w-full px-4 py-3.5 rounded-xl text-lg font-bold bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none">
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5">Rango fisiológico normal: 35.5 °C – 37.5 °C</p>
+                            <input type="text" inputmode="decimal" id="s2-temp" oninput="evalLiveTemp(this.value)" required placeholder="Ej. 36.5 o 36,5" class="w-full px-4 py-3.5 rounded-xl text-lg font-bold bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none">
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5">Rango fisiológico normal: 35.5 °C – 37.5 °C (Acepta punto o coma)</p>
                         </div>
                         <div class="p-4 rounded-xl bg-slate-50 dark:bg-navy-950 border border-slate-200 dark:border-slate-800">
                             <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">Interpretación Clínica</span>
@@ -303,9 +348,7 @@
                 </form>
             </section>
 
-            <!-- ================================================================= -->
-            <!-- STAND 3: OXIMETRÍA Y FRECUENCIA CARDÍACA                          -->
-            <!-- ================================================================= -->
+            <!-- STAND 3: OXIMETRÍA Y FRECUENCIA CARDÍACA -->
             <section id="pane-stand-3" class="stand-pane hidden bg-white dark:bg-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-7 shadow-sm">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
                     <div class="w-11 h-11 rounded-xl bg-sky-500/15 text-sky-500 flex items-center justify-center text-xl">
@@ -351,9 +394,7 @@
                 </form>
             </section>
 
-            <!-- ================================================================= -->
-            <!-- STAND 4: ANTROPOMETRÍA (PESO, TALLA E IMC)                        -->
-            <!-- ================================================================= -->
+            <!-- STAND 4: ANTROPOMETRÍA (PESO, TALLA E IMC) -->
             <section id="pane-stand-4" class="stand-pane hidden bg-white dark:bg-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-7 shadow-sm">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
                     <div class="w-11 h-11 rounded-xl bg-indigo-500/15 text-indigo-500 flex items-center justify-center text-xl">
@@ -369,11 +410,11 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-2">Peso Corporal (kg) *</label>
-                            <input type="number" step="0.1" id="s4-weight" inputmode="decimal" min="15" max="250" oninput="evalLiveIMC()" required placeholder="Ej. 65.5" class="w-full px-4 py-3.5 rounded-xl text-lg font-bold bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <input type="text" inputmode="decimal" id="s4-weight" oninput="evalLiveIMC()" required placeholder="Ej. 65.5 o 65,5" class="w-full px-4 py-3.5 rounded-xl text-lg font-bold bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-2">Estatura / Talla (cm o m) *</label>
-                            <input type="number" step="0.01" id="s4-height" inputmode="decimal" min="0.9" max="230" oninput="evalLiveIMC()" required placeholder="Ej. 165 o 1.65" class="w-full px-4 py-3.5 rounded-xl text-lg font-bold bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <input type="text" inputmode="decimal" id="s4-height" oninput="evalLiveIMC()" required placeholder="Ej. 165 o 1,65" class="w-full px-4 py-3.5 rounded-xl text-lg font-bold bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
                         </div>
                     </div>
 
@@ -394,9 +435,7 @@
                 </form>
             </section>
 
-            <!-- ================================================================= -->
-            <!-- STAND 5: PRESIÓN ARTERIAL                                         -->
-            <!-- ================================================================= -->
+            <!-- STAND 5: PRESIÓN ARTERIAL -->
             <section id="pane-stand-5" class="stand-pane hidden bg-white dark:bg-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-7 shadow-sm">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
                     <div class="w-11 h-11 rounded-xl bg-rose-500/15 text-rose-500 flex items-center justify-center text-xl">
@@ -434,9 +473,7 @@
                 </form>
             </section>
 
-            <!-- ================================================================= -->
-            <!-- STAND 6: GLUCOMETRÍA                                              -->
-            <!-- ================================================================= -->
+            <!-- STAND 6: GLUCOMETRÍA -->
             <section id="pane-stand-6" class="stand-pane hidden bg-white dark:bg-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-7 shadow-sm">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
                     <div class="w-11 h-11 rounded-xl bg-purple-500/15 text-purple-500 flex items-center justify-center text-xl">
@@ -477,9 +514,7 @@
                 </form>
             </section>
 
-            <!-- ================================================================= -->
-            <!-- STAND 7: AUDITORÍA, AGENTE IA E IMPRESIÓN DE CARNET               -->
-            <!-- ================================================================= -->
+            <!-- STAND 7: AUDITORÍA, AGENTE IA E IMPRESIÓN DE CARNET -->
             <section id="pane-stand-7" class="stand-pane hidden bg-white dark:bg-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-7 shadow-sm space-y-5 sm:space-y-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-800">
                     <div class="flex items-center gap-3">
@@ -502,7 +537,6 @@
                     </div>
                 </div>
 
-                <!-- Semáforo en Vivo de las 5 Estaciones Clínicas -->
                 <div>
                     <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Estado en Tiempo Real del Circuito Clínico</h3>
                     <div id="s7-audit-grid" class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 sm:gap-3">
@@ -510,7 +544,6 @@
                     </div>
                 </div>
 
-                <!-- Módulo de Agente IA y Observaciones -->
                 <div class="space-y-3 pt-1">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                         <label for="s7-notes" class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
@@ -526,7 +559,6 @@
                     <p id="ai-status-indicator" class="text-xs text-slate-500 dark:text-slate-400"></p>
                 </div>
 
-                <!-- Botones de Acción Final -->
                 <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row items-center justify-between gap-3">
                     <button type="button" onclick="saveStand7Notes()" class="w-full lg:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white transition cursor-pointer">
                         <i class="fa-solid fa-cloud-arrow-up"></i>
@@ -550,11 +582,8 @@
                 </div>
             </section>
 
-            <!-- ================================================================= -->
-            <!-- TABLERO GENERAL DEL COORDINADOR (DASHBOARD)                       -->
-            <!-- ================================================================= -->
+            <!-- TABLERO GENERAL DEL COORDINADOR (DASHBOARD) -->
             <section id="pane-dashboard" class="stand-pane hidden space-y-5 sm:space-y-6">
-                <!-- Métricas Superiores -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <div class="bg-white dark:bg-navy-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800">
                         <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 block">Total Inscritos</span>
@@ -574,9 +603,7 @@
                     </div>
                 </div>
 
-                <!-- Gráficos Estadísticos en Tiempo Real (Chart.js) -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    <!-- Gráfico 1: Estado Nutricional (IMC) -->
                     <div class="bg-white dark:bg-navy-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
                         <div class="flex items-center justify-between mb-3">
                             <div>
@@ -592,7 +619,6 @@
                         </div>
                     </div>
 
-                    <!-- Gráfico 2: Clasificación de Presión Arterial (AHA) -->
                     <div class="bg-white dark:bg-navy-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
                         <div class="flex items-center justify-between mb-3">
                             <div>
@@ -608,7 +634,6 @@
                         </div>
                     </div>
 
-                    <!-- Gráfico 3: Participación y Alertas por Estamento -->
                     <div class="bg-white dark:bg-navy-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
                         <div class="flex items-center justify-between mb-3">
                             <div>
@@ -625,7 +650,6 @@
                     </div>
                 </div>
 
-                <!-- Tabla Consolidada -->
                 <div class="bg-white dark:bg-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
                     <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
@@ -638,13 +662,13 @@
                             <p class="text-xs text-slate-500 dark:text-slate-400">Gestión exclusiva del Coordinador: impresión, envío WhatsApp, edición y depuración</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2 shrink-0">
-                            <button type="button" onclick="openChangePinModal()" title="Cambiar PIN de acceso del Coordinador" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-navy-850 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer">
+                            <button type="button" onclick="openChangePinModal()" title="Cambiar PINs en la nube para todos los dispositivos" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-navy-850 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer">
                                 <i class="fa-solid fa-key text-amber-500"></i>
-                                <span>Cambiar PIN</span>
+                                <span>Configurar PINs (Nube)</span>
                             </button>
-                            <button type="button" onclick="lockCoordinatorSession()" title="Bloquear Tablero y volver al Stand 1" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold bg-rose-500/15 hover:bg-rose-600 text-rose-500 hover:text-white border border-rose-500/30 transition cursor-pointer">
-                                <i class="fa-solid fa-lock"></i>
-                                <span>Bloquear</span>
+                            <button type="button" onclick="lockCoordinatorSession()" title="Salir del modo Coordinador y volver al Stand 1" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold bg-rose-500/15 hover:bg-rose-600 text-rose-500 hover:text-white border border-rose-500/30 transition cursor-pointer">
+                                <i class="fa-solid fa-user-lock"></i>
+                                <span>Salir Coordinador</span>
                             </button>
                             <button type="button" onclick="downloadExcelExport()" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition cursor-pointer">
                                 <i class="fa-solid fa-file-excel"></i>
@@ -678,14 +702,11 @@
 
         </main>
 
-        <!-- PIE DE PÁGINA -->
         <footer class="border-t border-slate-200 dark:border-slate-800/80 py-4 px-4 text-center text-xs text-slate-500 dark:text-slate-400">
             <span class="font-bold text-slate-700 dark:text-slate-300">PromoHealth</span> • Programa de Prevención y Promoción en Salud Escolar • Desarrollado por <span class="font-semibold text-emerald-500">@resma</span>
         </footer>
 
-        <!-- ================================================================= -->
-        <!-- MODAL 1: SELECTOR DE ESTACIÓN / ROL                               -->
-        <!-- ================================================================= -->
+        <!-- MODAL 1: SELECTOR DE ESTACIÓN -->
         <div id="modal-station" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -694,13 +715,13 @@
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Elige el stand asignado a este computador, tableta o teléfono móvil:</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Elige el stand asignado a este equipo:</p>
                 <div class="grid grid-cols-1 gap-2 max-h-[60vh] overflow-y-auto pr-1">
                     <button type="button" onclick="setStation('stand-1')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-500/10 text-left transition cursor-pointer">
                         <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold text-xs">S1</span>
                         <div>
                             <div class="font-bold text-sm text-slate-900 dark:text-white">Stand 1: Admisión e Inscripción</div>
-                            <div class="text-[11px] text-slate-500">Registro inicial, rol en la comunidad y antecedentes</div>
+                            <div class="text-[11px] text-slate-500">Registro inicial y factores de riesgo</div>
                         </div>
                     </button>
                     <button type="button" onclick="setStation('stand-2')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-orange-500 hover:bg-orange-500/10 text-left transition cursor-pointer">
@@ -761,9 +782,7 @@
             </div>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- MODAL 2: CONFIGURAR GEMINI API KEY (OPCIONAL EN STAND 7)          -->
-        <!-- ================================================================= -->
+        <!-- MODAL 2: CONFIGURAR GEMINI API KEY -->
         <div id="modal-gemini" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -776,7 +795,7 @@
                     </button>
                 </div>
                 <p class="text-xs text-slate-500 dark:text-slate-400">
-                    Opcional: Ingresa tu clave de Google Gemini (acepta formato <code>AIzaSy...</code> o token <code>AQ.Ab...</code>). Si se deja vacía o el token expira, <strong>PromoHealth</strong> empleará automáticamente su Motor Clínico Experto local sin interrupciones.
+                    Opcional: Ingresa tu clave de Google Gemini. Si se deja vacía, <strong>PromoHealth</strong> empleará su Motor Clínico Experto local.
                 </p>
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Gemini API Key / Token</label>
@@ -789,9 +808,7 @@
             </div>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- MODAL 3: VISTA PREVIA DEL CARNET CLÍNICO                          -->
-        <!-- ================================================================= -->
+        <!-- MODAL 3: VISTA PREVIA DEL CARNET -->
         <div id="modal-preview" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
             <div class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
                 <div class="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
@@ -812,14 +829,12 @@
                     </div>
                 </div>
                 <div id="preview-modal-body" class="p-2.5 sm:p-6 overflow-y-auto overflow-x-auto bg-slate-200 dark:bg-slate-950">
-                    <!-- Clon limpio del reporte -->
+                    <!-- Clon del reporte -->
                 </div>
             </div>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- MODAL 4: EDITAR DATOS DEL PARTICIPANTE (EXCLUSIVO DASHBOARD)      -->
-        <!-- ================================================================= -->
+        <!-- MODAL 4: EDITAR DATOS DEL PARTICIPANTE -->
         <div id="modal-edit-patient" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-xl w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
                 <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -837,7 +852,7 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Documento (C.C. / T.I.) *</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Documento *</label>
                             <input type="text" id="edit-doc" inputmode="numeric" required class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <div>
@@ -848,18 +863,18 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Edad (Años) *</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Edad *</label>
                             <input type="number" id="edit-age" inputmode="numeric" min="5" max="99" required class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Sexo Biológico *</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Sexo *</label>
                             <select id="edit-gender" required class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
                                 <option value="Femenino">Femenino</option>
                                 <option value="Masculino">Masculino</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Estamento / Rol *</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Rol *</label>
                             <select id="edit-area" required class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
                                 <option value="Docente">Docente</option>
                                 <option value="Estudiante">Estudiante</option>
@@ -874,7 +889,7 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Tabaquismo / Vapeo</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Tabaquismo</label>
                             <select id="edit-smoking" class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
                                 <option value="No fuma">No fuma</option>
                                 <option value="Exfumador">Exfumador</option>
@@ -905,7 +920,7 @@
                         <button type="button" onclick="closeEditPatientModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer">
                             Cancelar
                         </button>
-                        <button type="submit" id="btn-save-edit" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 cursor-pointer">
+                        <button type="submit" id="btn-save-edit" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-md cursor-pointer">
                             <i class="fa-solid fa-floppy-disk"></i>
                             Guardar Cambios
                         </button>
@@ -914,9 +929,7 @@
             </div>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- MODAL 5: CONFIRMAR ELIMINACIÓN (EXCLUSIVO DASHBOARD)              -->
-        <!-- ================================================================= -->
+        <!-- MODAL 5: CONFIRMAR ELIMINACIÓN -->
         <div id="modal-delete-patient" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
                 <div class="flex items-center gap-3">
@@ -938,7 +951,7 @@
                     <button type="button" onclick="closeDeletePatientModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer">
                         Cancelar
                     </button>
-                    <button type="button" id="btn-confirm-delete" onclick="confirmDeletePatient()" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-600/25 cursor-pointer">
+                    <button type="button" id="btn-confirm-delete" onclick="confirmDeletePatient()" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-md cursor-pointer">
                         <i class="fa-solid fa-trash-can"></i>
                         Sí, Eliminar Registro
                     </button>
@@ -946,9 +959,7 @@
             </div>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- MODAL 6: ENVIAR CARNET POR WHATSAPP                               -->
-        <!-- ================================================================= -->
+        <!-- MODAL 6: ENVIAR CARNET POR WHATSAPP -->
         <div id="modal-whatsapp" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -977,16 +988,13 @@
                             </span>
                             <input type="tel" id="wa-phone-input" inputmode="numeric" required placeholder="Ej. 3001234567" class="flex-1 px-4 py-2.5 rounded-xl text-base font-bold bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-[#25D366] outline-none">
                         </div>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">
-                            No necesitas agregar el número a tus contactos. Se abrirá WhatsApp con el informe clínico completo listo para enviar.
-                        </p>
                     </div>
 
                     <div class="flex items-center justify-end gap-2.5 pt-2">
                         <button type="button" onclick="closeWhatsAppModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer">
                             Cancelar
                         </button>
-                        <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-[#25D366] hover:bg-[#1ebe57] text-white shadow-md shadow-emerald-600/25 cursor-pointer">
+                        <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-[#25D366] hover:bg-[#1ebe57] text-white shadow-md cursor-pointer">
                             <i class="fa-brands fa-whatsapp text-sm"></i>
                             Abrir WhatsApp y Enviar
                         </button>
@@ -995,9 +1003,7 @@
             </div>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- MODAL 7: PIN DE SEGURIDAD PARA EL ROL COORDINADOR                 -->
-        <!-- ================================================================= -->
+        <!-- MODAL 7: PIN DE SEGURIDAD COORDINADOR -->
         <div id="modal-pin" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -1011,7 +1017,7 @@
                 </div>
 
                 <p class="text-xs text-slate-500 dark:text-slate-400">
-                    Ingresa el PIN de seguridad para abrir el <strong>Tablero General</strong> (edición, depuración y exportación).
+                    Ingresa el PIN Maestro del Coordinador para abrir el <strong>Tablero General</strong>.
                 </p>
 
                 <form onsubmit="submitPinVerification(event)" class="space-y-4">
@@ -1023,7 +1029,7 @@
                         <button type="button" onclick="closePinModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer">
                             Cancelar
                         </button>
-                        <button type="submit" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-500/20 cursor-pointer">
+                        <button type="submit" id="btn-verify-coord-pin" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md cursor-pointer">
                             <i class="fa-solid fa-unlock-keyhole"></i>
                             Desbloquear Tablero
                         </button>
@@ -1032,54 +1038,76 @@
             </div>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- MODAL 8: CAMBIAR PIN DEL COORDINADOR                              -->
-        <!-- ================================================================= -->
+        <!-- MODAL 8: CONFIGURAR PINs EN NUBE -->
         <div id="modal-change-pin" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+            <div class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                     <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <i class="fa-solid fa-key text-amber-500"></i>
-                        Cambiar PIN del Coordinador
+                        <i class="fa-solid fa-cloud-bolt text-amber-500"></i>
+                        Configurar PINs en Nube (Global)
                     </h3>
                     <button type="button" onclick="closeChangePinModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
 
-                <form onsubmit="submitChangePin(event)" class="space-y-3.5">
+                <form onsubmit="submitChangePin(event)" class="space-y-4">
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">PIN Actual *</label>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Tu PIN Maestro Actual *</label>
                         <input type="password" id="current-pin-input" inputmode="numeric" maxlength="8" required placeholder="PIN actual" class="w-full px-3.5 py-2.5 rounded-xl text-center text-lg font-bold tracking-widest bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none">
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Nuevo PIN (4 a 8 dígitos) *</label>
-                        <input type="password" id="new-pin-input" inputmode="numeric" minlength="4" maxlength="8" required placeholder="Ej. 2026" class="w-full px-3.5 py-2.5 rounded-xl text-center text-lg font-bold tracking-widest bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <div class="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/25">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-emerald-500 mb-1">PIN de Jornada (Stands) *</label>
+                            <input type="text" id="new-staff-pin-input" inputmode="numeric" minlength="4" maxlength="8" required placeholder="Ej. 1234" class="w-full px-3 py-2 rounded-lg text-center text-base font-extrabold tracking-widest bg-white dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+
+                        <div class="p-3 rounded-xl bg-amber-500/5 border border-amber-500/25">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-amber-500 mb-1">PIN Maestro (Coord.) *</label>
+                            <input type="text" id="new-pin-input" inputmode="numeric" minlength="4" maxlength="8" required placeholder="Ej. 2026" class="w-full px-3 py-2 rounded-lg text-center text-base font-extrabold tracking-widest bg-white dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none">
+                        </div>
                     </div>
 
-                    <div class="flex items-center justify-end gap-2 pt-2">
+                    <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
                         <button type="button" onclick="closeChangePinModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer">
                             Cancelar
                         </button>
-                        <button type="submit" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md cursor-pointer">
-                            <i class="fa-solid fa-floppy-disk"></i>
-                            Guardar PIN
+                        <button type="submit" id="btn-save-pins" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md cursor-pointer">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            Guardar en Nube
                         </button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- NOTIFICACIÓN FLOTANTE (TOAST) -->
+        <!-- MODAL 9: CONFIRMACIÓN RÁPIDA CENTRAL (AUTO-CIERRE 1.3s) -->
+        <div id="modal-save-success" onclick="closeSaveSuccessModal()" class="hidden fixed inset-0 z-[55] bg-slate-950/60 backdrop-blur-[2px] flex items-center justify-center p-4 cursor-pointer">
+            <div id="modal-save-success-card" class="animate-pop-in bg-white dark:bg-navy-900 border-2 border-emerald-500/50 rounded-3xl max-w-xs w-full p-6 shadow-2xl text-center space-y-3 pointer-events-auto">
+                <div class="w-16 h-16 mx-auto rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center justify-center text-3xl shadow-inner">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="space-y-1">
+                    <h4 id="save-success-title" class="text-base font-extrabold text-slate-900 dark:text-white">
+                        ¡Guardado en la Nube!
+                    </h4>
+                    <p id="save-success-subtitle" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                        Registro sincronizado correctamente
+                    </p>
+                    <p id="save-success-patient" class="text-[11px] text-slate-500 dark:text-slate-400 truncate pt-0.5">
+                        --
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <div id="toast-container" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-5 z-50 flex flex-col items-center sm:items-end gap-2 pointer-events-none"></div>
     </div>
 
-    <!-- ===================================================================== -->
-    <!-- CONTENEDOR EXCLUSIVO PARA IMPRESIÓN FÍSICA / PDF                      -->
-    <!-- ===================================================================== -->
+    <!-- CONTENEDOR EXCLUSIVO PARA IMPRESIÓN FÍSICA / PDF -->
     <div id="printable-report-container">
         <div id="carnet-sheet" class="max-w-[210mm] mx-auto bg-white text-slate-900 p-6 border border-slate-300 rounded-lg">
-            <!-- Encabezado Institucional -->
             <div class="flex items-center justify-between border-b-2 border-emerald-600 pb-4 mb-5">
                 <div class="flex items-center gap-3">
                     <div class="w-12 h-12 rounded-xl bg-white border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
@@ -1088,7 +1116,7 @@
                     </div>
                     <div>
                         <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Promo<span class="text-emerald-600">Health</span></h1>
-                        <p class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Feria Centros de Interés • Guardianes de Vida</p>
+                        <p class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Feria Centros de Interés INEM • Guardianes de Vida</p>
                     </div>
                 </div>
                 <div class="text-right text-xs text-slate-600">
@@ -1097,7 +1125,6 @@
                 </div>
             </div>
 
-            <!-- Datos del Participante -->
             <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-5">
                 <div class="grid grid-cols-3 gap-3 text-xs">
                     <div>
@@ -1129,7 +1156,6 @@
                 </div>
             </div>
 
-            <!-- Tabla de Resultados Clínicos -->
             <table class="w-full border-collapse border border-slate-300 text-xs mb-5">
                 <thead>
                     <tr class="bg-emerald-600 text-white">
@@ -1140,11 +1166,9 @@
                     </tr>
                 </thead>
                 <tbody id="print-table-body">
-                    <!-- Filas dinámicas -->
                 </tbody>
             </table>
 
-            <!-- Impresión Diagnóstica y Recomendaciones -->
             <div class="border border-slate-300 rounded-lg p-4 mb-6 bg-slate-50">
                 <h4 class="text-xs font-extrabold uppercase tracking-wider text-emerald-700 mb-1.5">
                     Impresión Diagnóstica Preventiva y Recomendaciones (Stand 7 - PromoHealth)
@@ -1154,10 +1178,9 @@
                 </p>
             </div>
 
-            <!-- Firmas y Pie de Página -->
             <div class="grid grid-cols-2 gap-8 pt-6 mt-4 text-center text-xs text-slate-600">
                 <div>
-                    <div class="border-t border-slate-400 w-3/4 mx-auto pt-1.5 font-semibold">Equipo Estudiantil • Prevención en Salud</div>
+                    <div class="border-t border-slate-400 w-3/4 mx-auto pt-1.5 font-semibold">Guardianes de Vida • Prevención en Salud</div>
                     <div class="text-[10px]">Responsables de Tamizaje</div>
                 </div>
                 <div>
@@ -1167,35 +1190,36 @@
             </div>
 
             <div class="mt-6 pt-3 border-t border-slate-200 text-[10px] text-slate-500 flex justify-between items-center">
-                <span>Nota: Este tamizaje escolar es educativo; es netamente pedagógico y no es una impresión diagnostica verdadera.</span>
+                <span>Nota: Este tamizaje escolar es preventivo y educativo; no reemplaza una consulta médica diagnóstica.</span>
                 <span class="font-bold text-slate-700">PromoHealth • @resma</span>
             </div>
         </div>
     </div>
 
-    <!-- ===================================================================== -->
-    <!-- LÓGICA DE APLICACIÓN, SUPABASE REALTIME Y MOTOR CLÍNICO               -->
-    <!-- ===================================================================== -->
+    <!-- LÓGICA DE APLICACIÓN -->
     <script>
-        // --- 1. CREDENCIALES SUPABASE INTEGRADAS ---
         const DEFAULT_SUPABASE_URL = "https://dlrcgqpuzxbgjdrjouwd.supabase.co";
         const DEFAULT_SUPABASE_KEY = "sb_publishable_SThDTpHg5tgIUtbWbu7dRw_WXpUCVgn";
+        const SYSTEM_CONFIG_DOC_ID = "__PROMOHEALTH_CONFIG__";
 
-        // --- 2. ESTADO GLOBAL ---
         let supabaseClient = null;
         let realtimeChannel = null;
         let pollInterval = null;
+        let saveModalTimer = null;
         let patients = [];
         let selectedDoc = null;
         let pendingDeleteDoc = null;
         let isSavingRecord = false;
         let currentStation = 'stand-1';
         let geminiApiKey = localStorage.getItem('promohealth_gemini_key') || '';
+
+        const DEFAULT_STAFF_PIN = '1234';
         const DEFAULT_COORDINATOR_PIN = '2026';
+        let staffPin = localStorage.getItem('promohealth_staff_pin') || DEFAULT_STAFF_PIN;
         let coordinatorPin = localStorage.getItem('promohealth_coord_pin') || DEFAULT_COORDINATOR_PIN;
+        let isAppUnlocked = sessionStorage.getItem('promohealth_app_unlocked') === 'true';
         let isCoordinatorUnlocked = sessionStorage.getItem('promohealth_coord_unlocked') === 'true';
 
-        // Instancias y firma de caché para los gráficos de Chart.js
         let chartIMCInstance = null;
         let chartBPInstance = null;
         let chartRolesInstance = null;
@@ -1212,19 +1236,21 @@
             'dashboard': 'Tablero General'
         };
 
-        // --- 3. CICLO DE INICIALIZACIÓN ---
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             initTheme();
-            let savedStation = localStorage.getItem('feria_station_role') || 'stand-1';
-            if (savedStation === 'dashboard' && !isCoordinatorUnlocked) {
-                savedStation = 'stand-1';
-            }
-            setStation(savedStation, false);
-            initSupabaseClient();
             updateAIEnginePill();
             bindFormDirtyListeners();
 
-            // Cerrar cualquier modal con la tecla Escape
+            ensureSupabaseInstance();
+            await syncPinsFromCloud();
+
+            if (isAppUnlocked) {
+                unlockApplicationUI(false);
+            } else {
+                const pinInput = document.getElementById('initial-app-pin');
+                if (pinInput) setTimeout(() => pinInput.focus(), 120);
+            }
+
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
                     closeStationModal();
@@ -1235,11 +1261,169 @@
                     closeWhatsAppModal();
                     closePinModal();
                     closeChangePinModal();
+                    closeSaveSuccessModal();
                 }
             });
         });
 
-        // Protección contra sobrescritura mientras el usuario edita campos
+        function ensureSupabaseInstance() {
+            if (!supabaseClient) {
+                try {
+                    supabaseClient = window.supabase.createClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY, {
+                        realtime: { params: { eventsPerSecond: 10 } }
+                    });
+                } catch (err) {
+                    console.error("Error creando instancia Supabase:", err);
+                }
+            }
+            return supabaseClient;
+        }
+
+        function applyPinsFromConfigRecord(record) {
+            if (!record || !record.observaciones_finales) return;
+            try {
+                const parsed = JSON.parse(record.observaciones_finales);
+                if (parsed.staffPin) {
+                    staffPin = String(parsed.staffPin).trim();
+                    localStorage.setItem('promohealth_staff_pin', staffPin);
+                }
+                if (parsed.coordinatorPin) {
+                    coordinatorPin = String(parsed.coordinatorPin).trim();
+                    localStorage.setItem('promohealth_coord_pin', coordinatorPin);
+                }
+            } catch (e) {
+                console.warn("No se pudo leer configuración de PINs:", e);
+            }
+        }
+
+        async function syncPinsFromCloud() {
+            const client = ensureSupabaseInstance();
+            if (!client) return;
+            try {
+                const { data, error } = await client
+                    .from('feria_pacientes')
+                    .select('documento, observaciones_finales')
+                    .eq('documento', SYSTEM_CONFIG_DOC_ID)
+                    .maybeSingle();
+
+                if (!error && data) {
+                    applyPinsFromConfigRecord(data);
+                }
+            } catch (e) {
+                console.warn("Usando PIN en caché local:", e.message);
+            }
+        }
+
+        async function savePinsToCloud(newStaffPin, newCoordPin) {
+            const client = ensureSupabaseInstance();
+            if (!client) throw new Error('Sin conexión con Supabase');
+
+            const configPayload = {
+                documento: SYSTEM_CONFIG_DOC_ID,
+                nombre_docente: 'SISTEMA CONFIGURACION PIN',
+                edad: 18,
+                sexo: 'Sistema',
+                area: 'Sistema',
+                observaciones_finales: JSON.stringify({
+                    staffPin: newStaffPin,
+                    coordinatorPin: newCoordPin,
+                    updatedAt: new Date().toISOString()
+                })
+            };
+
+            const { error } = await client
+                .from('feria_pacientes')
+                .upsert([configPayload], { onConflict: 'documento' });
+
+            if (error) throw error;
+        }
+
+        async function submitInitialAppUnlock(e) {
+            e.preventDefault();
+            const input = document.getElementById('initial-app-pin');
+            const errEl = document.getElementById('lock-screen-error');
+            const btn = document.getElementById('btn-initial-unlock');
+            const btnLbl = document.getElementById('btn-initial-unlock-label');
+            const entered = (input?.value || '').trim();
+
+            if (btn) btn.disabled = true;
+            if (btnLbl) btnLbl.textContent = 'Verificando PIN...';
+
+            await syncPinsFromCloud();
+
+            if (btn) btn.disabled = false;
+            if (btnLbl) btnLbl.textContent = 'Ingresar a PromoHealth';
+
+            if (entered === coordinatorPin) {
+                isAppUnlocked = true;
+                isCoordinatorUnlocked = true;
+                sessionStorage.setItem('promohealth_app_unlocked', 'true');
+                sessionStorage.setItem('promohealth_coord_unlocked', 'true');
+                if (errEl) errEl.classList.add('hidden');
+                unlockApplicationUI(true, 'coordinator');
+            } else if (entered === staffPin) {
+                isAppUnlocked = true;
+                isCoordinatorUnlocked = false;
+                sessionStorage.setItem('promohealth_app_unlocked', 'true');
+                sessionStorage.removeItem('promohealth_coord_unlocked');
+                if (errEl) errEl.classList.add('hidden');
+                unlockApplicationUI(true, 'staff');
+            } else {
+                if (errEl) errEl.classList.remove('hidden');
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
+            }
+        }
+
+        function unlockApplicationUI(isFreshLogin = false, roleType = 'staff') {
+            document.getElementById('app-lock-screen')?.classList.add('hidden');
+            document.getElementById('app-root')?.classList.remove('hidden');
+
+            let savedStation = localStorage.getItem('feria_station_role') || 'stand-1';
+            if (savedStation === 'dashboard' && !isCoordinatorUnlocked) {
+                savedStation = 'stand-1';
+            }
+            setStation(savedStation, false);
+
+            startDataSyncLoop();
+
+            if (isFreshLogin) {
+                if (roleType === 'coordinator') {
+                    showToast('Bienvenido Coordinador • Acceso total habilitado', 'success');
+                } else {
+                    showToast('Acceso autorizado • Selecciona tu Stand de trabajo', 'success');
+                }
+                openStationModal();
+            }
+        }
+
+        function lockEntireApplication() {
+            isAppUnlocked = false;
+            isCoordinatorUnlocked = false;
+            sessionStorage.removeItem('promohealth_app_unlocked');
+            sessionStorage.removeItem('promohealth_coord_unlocked');
+
+            if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+            }
+            if (supabaseClient && realtimeChannel) {
+                try { supabaseClient.removeChannel(realtimeChannel); } catch (_) {}
+                realtimeChannel = null;
+            }
+
+            closeStationModal();
+            document.getElementById('app-root')?.classList.add('hidden');
+            document.getElementById('app-lock-screen')?.classList.remove('hidden');
+            const input = document.getElementById('initial-app-pin');
+            if (input) {
+                input.value = '';
+                setTimeout(() => input.focus(), 100);
+            }
+        }
+
         function bindFormDirtyListeners() {
             const standInputs = [
                 's2-temp',
@@ -1273,7 +1457,6 @@
             });
         }
 
-        // --- 4. TEMA VISUAL (MODO OSCURO / CLARO) ---
         function initTheme() {
             const savedTheme = localStorage.getItem('promohealth_theme') || 'dark';
             const html = document.documentElement;
@@ -1296,28 +1479,20 @@
             if (currentStation === 'dashboard') renderDashboardCharts(true);
         }
 
-        // --- 5. CONEXIÓN SUPABASE Y TIEMPO REAL ---
-        function initSupabaseClient() {
+        function startDataSyncLoop() {
             try {
-                supabaseClient = window.supabase.createClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY, {
-                    realtime: {
-                        params: {
-                            eventsPerSecond: 10
-                        }
-                    }
-                });
+                ensureSupabaseInstance();
                 fetchCloudPatients(false);
                 subscribeRealtime();
 
                 if (pollInterval) clearInterval(pollInterval);
                 pollInterval = setInterval(() => fetchCloudPatients(false), 4000);
             } catch (err) {
-                console.error("Error inicializando Supabase:", err);
+                console.error("Error inicializando sincronización:", err);
                 updateConnectionStatusBadge('Error de conexión', false);
             }
         }
 
-        // Utilidades de validación y saneamiento seguro
         function hasVal(v) {
             return v !== null && v !== undefined && v !== '';
         }
@@ -1347,18 +1522,24 @@
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'feria_pacientes' }, payload => {
                         handleRealtimeEvent(payload);
                     })
-                    .subscribe((status) => {
-                        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-                            console.warn('Canal Realtime en espera; sincronización respaldada por HTTPS.');
-                        }
-                    });
+                    .subscribe();
             } catch (wsErr) {
-                console.info("WebSocket Realtime no disponible en este entorno; operando vía sincronización HTTPS.", wsErr.message);
+                console.info("Realtime respaldado por HTTPS.", wsErr.message);
             }
         }
 
         function handleRealtimeEvent(payload) {
             const { eventType, new: newRecord, old: oldRecord } = payload;
+
+            if (newRecord && newRecord.documento === SYSTEM_CONFIG_DOC_ID) {
+                applyPinsFromConfigRecord(newRecord);
+                patients = patients.filter(p => p.documento !== SYSTEM_CONFIG_DOC_ID);
+                return;
+            }
+            if (oldRecord && oldRecord.documento === SYSTEM_CONFIG_DOC_ID) {
+                return;
+            }
+
             if (eventType === 'INSERT' && newRecord) {
                 const exists = patients.some(p => (p.id && newRecord.id && p.id === newRecord.id) || p.documento === newRecord.documento);
                 if (!exists) patients.unshift(newRecord);
@@ -1397,7 +1578,11 @@
 
                 if (error) throw error;
 
-                patients = data || [];
+                const allRows = data || [];
+                const configRow = allRows.find(r => r.documento === SYSTEM_CONFIG_DOC_ID);
+                if (configRow) applyPinsFromConfigRecord(configRow);
+
+                patients = allRows.filter(r => r.documento !== SYSTEM_CONFIG_DOC_ID);
                 updateConnectionStatusBadge('PromoHealth Conectado', true);
 
                 if (selectedDoc) {
@@ -1434,7 +1619,6 @@
             }
         }
 
-        // --- 6. NAVEGACIÓN ENTRE ESTACIONES Y PIN DE SEGURIDAD ---
         function openStationModal() {
             document.getElementById('modal-station')?.classList.remove('hidden');
         }
@@ -1461,22 +1645,30 @@
             document.getElementById('modal-pin')?.classList.add('hidden');
         }
 
-        function submitPinVerification(e) {
+        async function submitPinVerification(e) {
             e.preventDefault();
-            const entered = (document.getElementById('coordinator-pin-input')?.value || '').trim();
-            if (entered === coordinatorPin) {
-                isCoordinatorUnlocked = true;
-                sessionStorage.setItem('promohealth_coord_unlocked', 'true');
-                closePinModal();
-                setStation('dashboard');
-                showToast('Acceso de Coordinador desbloqueado', 'success');
-            } else {
-                showToast('PIN incorrecto. Acceso restringido al Coordinador.', 'error');
-                const pinInput = document.getElementById('coordinator-pin-input');
-                if (pinInput) {
-                    pinInput.value = '';
-                    pinInput.focus();
+            const btn = document.getElementById('btn-verify-coord-pin');
+            if (btn) btn.disabled = true;
+
+            try {
+                await syncPinsFromCloud();
+                const entered = (document.getElementById('coordinator-pin-input')?.value || '').trim();
+                if (entered === coordinatorPin) {
+                    isCoordinatorUnlocked = true;
+                    sessionStorage.setItem('promohealth_coord_unlocked', 'true');
+                    closePinModal();
+                    setStation('dashboard');
+                    showToast('Acceso de Coordinador desbloqueado', 'success');
+                } else {
+                    showToast('PIN Maestro incorrecto. Acceso exclusivo del Coordinador.', 'error');
+                    const pinInput = document.getElementById('coordinator-pin-input');
+                    if (pinInput) {
+                        pinInput.value = '';
+                        pinInput.focus();
+                    }
                 }
+            } finally {
+                if (btn) btn.disabled = false;
             }
         }
 
@@ -1484,14 +1676,16 @@
             isCoordinatorUnlocked = false;
             sessionStorage.removeItem('promohealth_coord_unlocked');
             setStation('stand-1');
-            showToast('Sesión de Coordinador bloqueada por seguridad', 'info');
+            showToast('Modo Coordinador cerrado. Dispositivo en modo Stand.', 'info');
         }
 
         function openChangePinModal() {
             const currInput = document.getElementById('current-pin-input');
+            const staffInput = document.getElementById('new-staff-pin-input');
             const newInput = document.getElementById('new-pin-input');
             if (currInput) currInput.value = '';
-            if (newInput) newInput.value = '';
+            if (staffInput) staffInput.value = staffPin;
+            if (newInput) newInput.value = coordinatorPin;
             document.getElementById('modal-change-pin')?.classList.remove('hidden');
             setTimeout(() => currInput?.focus(), 100);
         }
@@ -1500,22 +1694,39 @@
             document.getElementById('modal-change-pin')?.classList.add('hidden');
         }
 
-        function submitChangePin(e) {
+        async function submitChangePin(e) {
             e.preventDefault();
-            const currVal = (document.getElementById('current-pin-input')?.value || '').trim();
-            const newVal = (document.getElementById('new-pin-input')?.value || '').trim();
+            const btn = document.getElementById('btn-save-pins');
+            if (btn) btn.disabled = true;
 
-            if (currVal !== coordinatorPin) {
-                return showToast('El PIN actual ingresado no es correcto', 'error');
-            }
-            if (newVal.length < 4) {
-                return showToast('El nuevo PIN debe tener al menos 4 dígitos', 'error');
-            }
+            try {
+                await syncPinsFromCloud();
+                const currVal = (document.getElementById('current-pin-input')?.value || '').trim();
+                const newStaffVal = (document.getElementById('new-staff-pin-input')?.value || '').trim();
+                const newCoordVal = (document.getElementById('new-pin-input')?.value || '').trim();
 
-            coordinatorPin = newVal;
-            localStorage.setItem('promohealth_coord_pin', newVal);
-            closeChangePinModal();
-            showToast('PIN del Coordinador actualizado correctamente', 'success');
+                if (currVal !== coordinatorPin) {
+                    return showToast('Tu PIN Maestro actual no es correcto', 'error');
+                }
+                if (newStaffVal.length < 4 || newCoordVal.length < 4) {
+                    return showToast('Ambos PINs deben tener al menos 4 caracteres', 'error');
+                }
+                if (newStaffVal === newCoordVal) {
+                    return showToast('El PIN de Jornada y el PIN Maestro deben ser diferentes', 'error');
+                }
+
+                await savePinsToCloud(newStaffVal, newCoordVal);
+                staffPin = newStaffVal;
+                coordinatorPin = newCoordVal;
+                localStorage.setItem('promohealth_staff_pin', newStaffVal);
+                localStorage.setItem('promohealth_coord_pin', newCoordVal);
+                closeChangePinModal();
+                showSaveSuccessModal('¡PINs Actualizados!', 'Sincronizados en la nube para todos los dispositivos', 'Seguridad PromoHealth');
+            } catch (err) {
+                showToast(err.message || 'No se pudo guardar el PIN en la nube', 'error');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
         }
 
         function setStation(stationKey, save = true) {
@@ -1551,8 +1762,8 @@
             }
         }
 
-        // --- 7. GESTIÓN DE PARTICIPANTE ACTIVO Y FORMULARIOS ---
         function updateUIState() {
+            patients = patients.filter(p => p.documento !== SYSTEM_CONFIG_DOC_ID);
             const countBadge = document.getElementById('registered-count-badge');
             if (countBadge) countBadge.textContent = `${patients.length} inscritos`;
 
@@ -1614,38 +1825,32 @@
 
         function clearAllStandForms() {
             resetFormDirtyFlags();
-            // Stand 2
             const s2Temp = document.getElementById('s2-temp');
             if (s2Temp) s2Temp.value = '';
             evalLiveTemp('');
 
-            // Stand 3
             const s3Oxi = document.getElementById('s3-oxi');
             const s3Pulse = document.getElementById('s3-pulse');
             if (s3Oxi) s3Oxi.value = '';
             if (s3Pulse) s3Pulse.value = '';
             evalLiveOxi();
 
-            // Stand 4
             const s4W = document.getElementById('s4-weight');
             const s4H = document.getElementById('s4-height');
             if (s4W) s4W.value = '';
             if (s4H) s4H.value = '';
             evalLiveIMC();
 
-            // Stand 5
             const s5S = document.getElementById('s5-sys');
             const s5D = document.getElementById('s5-dia');
             if (s5S) s5S.value = '';
             if (s5D) s5D.value = '';
             evalLiveBP();
 
-            // Stand 6
             const s6G = document.getElementById('s6-glucose');
             if (s6G) s6G.value = '';
             evalLiveGlucose();
 
-            // Stand 7
             const s7N = document.getElementById('s7-notes');
             if (s7N) s7N.value = '';
             renderStand7AuditBadges();
@@ -1692,7 +1897,6 @@
                 return;
             }
 
-            // Stand 2
             const s2Temp = document.getElementById('s2-temp');
             if (s2Temp && currentStation === 'stand-2') {
                 if (shouldPopulateField(s2Temp, force)) {
@@ -1701,7 +1905,6 @@
                 }
             }
 
-            // Stand 3
             if (currentStation === 'stand-3') {
                 const elOxi = document.getElementById('s3-oxi');
                 const elPulse = document.getElementById('s3-pulse');
@@ -1710,7 +1913,6 @@
                 evalLiveOxi();
             }
 
-            // Stand 4
             if (currentStation === 'stand-4') {
                 const elW = document.getElementById('s4-weight');
                 const elH = document.getElementById('s4-height');
@@ -1719,7 +1921,6 @@
                 evalLiveIMC();
             }
 
-            // Stand 5
             if (currentStation === 'stand-5') {
                 const elSys = document.getElementById('s5-sys');
                 const elDia = document.getElementById('s5-dia');
@@ -1728,7 +1929,6 @@
                 evalLiveBP();
             }
 
-            // Stand 6
             if (currentStation === 'stand-6') {
                 const elGluc = document.getElementById('s6-glucose');
                 const elType = document.getElementById('s6-type');
@@ -1737,7 +1937,6 @@
                 evalLiveGlucose();
             }
 
-            // Stand 7
             if (currentStation === 'stand-7') {
                 const elNotes = document.getElementById('s7-notes');
                 if (shouldPopulateField(elNotes, force)) {
@@ -1747,7 +1946,41 @@
             }
         }
 
-        // --- 8. ENVÍO DE DATOS POR STAND A SUPABASE ---
+        function showSaveSuccessModal(title, subtitle, patientLabel) {
+            const modal = document.getElementById('modal-save-success');
+            const card = document.getElementById('modal-save-success-card');
+            if (!modal) return;
+
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
+            }
+
+            document.getElementById('save-success-title').textContent = title || '¡Guardado en la Nube!';
+            document.getElementById('save-success-subtitle').textContent = subtitle || 'Registro sincronizado correctamente';
+            document.getElementById('save-success-patient').textContent = patientLabel || '';
+
+            if (card) {
+                card.classList.remove('animate-pop-in');
+                void card.offsetWidth;
+                card.classList.add('animate-pop-in');
+            }
+
+            modal.classList.remove('hidden');
+            if (saveModalTimer) clearTimeout(saveModalTimer);
+            saveModalTimer = setTimeout(() => {
+                closeSaveSuccessModal();
+            }, 1350);
+        }
+
+        function closeSaveSuccessModal() {
+            const modal = document.getElementById('modal-save-success');
+            if (modal) modal.classList.add('hidden');
+            if (saveModalTimer) {
+                clearTimeout(saveModalTimer);
+                saveModalTimer = null;
+            }
+        }
+
         async function submitStand1(e) {
             e.preventDefault();
             if (!supabaseClient) return showToast('Sin conexión con la base de datos', 'error');
@@ -1761,8 +1994,8 @@
             const activity = document.getElementById('s1-activity').value;
             const history = document.getElementById('s1-history').value;
 
-            if (!doc || !name || isNaN(age)) {
-                return showToast('Completa los campos obligatorios', 'error');
+            if (!doc || !name || isNaN(age) || doc === SYSTEM_CONFIG_DOC_ID) {
+                return showToast('Completa los campos obligatorios con un documento válido', 'error');
             }
 
             const btn = document.getElementById('btn-submit-s1');
@@ -1796,7 +2029,7 @@
 
                 document.getElementById('form-stand-1').reset();
                 updateUIState();
-                showToast(`Participante ${name} inscrito correctamente`, 'success');
+                showSaveSuccessModal('¡Participante Inscrito!', `${area || 'Participante'} registrado en Admisión`, `${name} • Doc. ${doc}`);
             } catch (err) {
                 showToast(err.message || 'Error al registrar participante', 'error');
             } finally {
@@ -1804,7 +2037,7 @@
             }
         }
 
-        async function updatePatientRecord(fields, successMessage) {
+        async function updatePatientRecord(fields, successMessage, inputElementIdToClear = null) {
             if (!selectedDoc) {
                 return showToast('Primero selecciona un participante en el desplegable superior', 'error');
             }
@@ -1830,8 +2063,22 @@
                 }
 
                 resetFormDirtyFlags();
-                showToast(successMessage, 'success');
                 updateUIState();
+                showSaveSuccessModal('¡Guardado en la Nube!', successMessage, `${selectedDoc.nombre_docente} (${countCompletedStands(selectedDoc)}/5 estaciones)`);
+
+                if (inputElementIdToClear) {
+                    setTimeout(() => {
+                        const el = document.getElementById(inputElementIdToClear);
+                        if (el) {
+                            el.value = '';
+                            if (inputElementIdToClear === 's2-temp') evalLiveTemp('');
+                            if (inputElementIdToClear === 's3-oxi') evalLiveOxi();
+                            if (inputElementIdToClear === 's4-weight') evalLiveIMC();
+                            if (inputElementIdToClear === 's5-sys') evalLiveBP();
+                            if (inputElementIdToClear === 's6-glucose') evalLiveGlucose();
+                        }
+                    }, 1350);
+                }
             } catch (err) {
                 showToast(err.message || 'Error al actualizar en Supabase', 'error');
             } finally {
@@ -1839,9 +2086,6 @@
             }
         }
 
-        // --- 9. EVALUADORES CLÍNICOS EN TIEMPO REAL ---
-
-        // Stand 2: Temperatura
         function classifyTemp(t) {
             if (t < 35.5) return { label: 'Hipotermia (< 35.5 °C)', color: 'text-sky-400', alert: true };
             if (t <= 37.5) return { label: 'Normotermia (Normal)', color: 'text-emerald-400', alert: false };
@@ -1871,10 +2115,9 @@
             await updatePatientRecord({
                 temperatura: temp,
                 estado_temperatura: res.label
-            }, 'Temperatura registrada con éxito');
+            }, `Temperatura: ${temp} °C (${res.label})`, 's2-temp');
         }
 
-        // Stand 3: Oximetría y Frecuencia Cardíaca
         function classifyOxi(spo2) {
             if (spo2 >= 95) return { label: 'Normoxemia (Normal)', color: 'text-emerald-400', alert: false };
             if (spo2 >= 90) return { label: 'Hipoxemia Leve (90-94%)', color: 'text-amber-400', alert: true };
@@ -1926,10 +2169,9 @@
                 frecuencia_cardiaca: pulse,
                 estado_oxigeno: classifyOxi(oxi).label,
                 estado_pulso: classifyPulse(pulse).label
-            }, 'Oximetría y pulso registrados');
+            }, `SpO2: ${oxi}% • Pulso: ${pulse} LPM`, 's3-oxi');
         }
 
-        // Stand 4: Antropometría e IMC
         function classifyIMC(imc) {
             if (imc < 18.5) return { label: 'Bajo Peso (< 18.5)', color: 'text-sky-400', alert: true };
             if (imc < 25.0) return { label: 'Peso Saludable (18.5 - 24.9)', color: 'text-emerald-400', alert: false };
@@ -1976,10 +2218,9 @@
                 altura: hCm,
                 imc: imc,
                 estado_imc: res.label
-            }, 'Antropometría e IMC guardados');
+            }, `IMC: ${imc} kg/m² (${res.label})`, 's4-weight');
         }
 
-        // Stand 5: Presión Arterial (AHA - Mayor gravedad primero)
         function classifyBP(sys, dia) {
             if (sys > 180 || dia > 120) return { label: 'Crisis Hipertensiva (>180/120)', color: 'text-rose-500', alert: true };
             if (sys >= 140 || dia >= 90) return { label: 'Hipertensión Grado 2', color: 'text-rose-400', alert: true };
@@ -2016,10 +2257,9 @@
                 presion_sistolica: sys,
                 presion_diastolica: dia,
                 estado_presion: res.label
-            }, 'Presión arterial guardada');
+            }, `Tensión: ${sys}/${dia} mmHg (${res.label})`, 's5-sys');
         }
 
-        // Stand 6: Glucometría
         function classifyGlucose(val, type) {
             if (val < 70) return { label: 'Hipoglucemia (< 70 mg/dL)', color: 'text-rose-400', alert: true };
             if (type === 'ayunas') {
@@ -2060,10 +2300,9 @@
                 glucometria: val,
                 tipo_toma: type,
                 estado_glucometria: res.label
-            }, 'Glucometría registrada con éxito');
+            }, `Glicemia: ${val} mg/dL (${res.label})`, 's6-glucose');
         }
 
-        // --- 10. STAND 7: AUDITORÍA Y AGENTE DE IA CLÍNICA ---
         function renderStand7AuditBadges() {
             const grid = document.getElementById('s7-audit-grid');
             if (!grid) return;
@@ -2193,17 +2432,16 @@
             }
         }
 
-        // Limpiador de formato Markdown para garantizar texto plano limpio en el textarea y en el PDF
         function cleanPlainText(text) {
             if (!text) return '';
             return String(text)
-                .replace(/\*\*(.*?)\*\*/g, '$1')   // Quitar negritas **texto**
-                .replace(/__(.*?)__/g, '$1')       // Quitar negritas __texto__
-                .replace(/\*(.*?)\*/g, '$1')       // Quitar cursivas *texto*
-                .replace(/^#{1,6}\s+/gm, '')       // Quitar encabezados #
-                .replace(/^\s*[\*\-]\s+/gm, '• ')  // Convertir viñetas * o - en punto limpio •
-                .replace(/`+/g, '')                // Quitar acentos graves de código
-                .replace(/\n{3,}/g, '\n\n')        // Evitar saltos de línea excesivos
+                .replace(/\*\*(.*?)\*\*/g, '$1')
+                .replace(/__(.*?)__/g, '$1')
+                .replace(/\*(.*?)\*/g, '$1')
+                .replace(/^#{1,6}\s+/gm, '')
+                .replace(/^\s*[\*\-]\s+/gm, '• ')
+                .replace(/`+/g, '')
+                .replace(/\n{3,}/g, '\n\n')
                 .trim();
         }
 
@@ -2217,7 +2455,7 @@
 
             const roleText = p.area || 'Participante de la comunidad educativa';
 
-            const prompt = `Actúa como médico experto en medicina preventiva y salud escolar en Colombia. Analiza estos resultados de tamizaje de un participante de la feria de la salud (${roleText}) y redacta una impresión diagnóstica breve (máximo 110 palabras), empática y con recomendaciones prácticas adaptadas a su edad (${p.edad} años) y a su rol (${roleText}).
+            const prompt = `Actúa como médico experto en medicina preventiva y salud escolar en Colombia. Analiza estos resultados de tamizaje de un participante de la feria de la salud (${roleText}) y redacta una impresión diagnóstica breve (máximo 200 palabras), empática y con recomendaciones prácticas adaptadas a su edad (${p.edad} años) y a su rol (${roleText}).
 REGLA DE FORMATO ESTRICTA: Escribe ÚNICAMENTE en texto plano continuo. NO uses formato Markdown, NO uses asteriscos (**), NO uses numerales (#) ni guiones de lista.
 Datos del participante:
 - Nombre: ${p.nombre_docente}, ${p.edad} años, ${p.sexo}, Rol/Estamento: ${roleText}.
@@ -2242,9 +2480,7 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
                         const textKey = dataKey?.candidates?.[0]?.content?.parts?.[0]?.text;
                         if (textKey) return cleanPlainText(textKey);
                     }
-                } catch (errA) {
-                    console.warn(`Intento con parámetro key en ${model} no disponible:`, errA.message);
-                }
+                } catch (errA) {}
 
                 if (isOAuthToken) {
                     try {
@@ -2261,9 +2497,7 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
                             const textBearer = dataBearer?.candidates?.[0]?.content?.parts?.[0]?.text;
                             if (textBearer) return cleanPlainText(textBearer);
                         }
-                    } catch (errB) {
-                        console.warn(`Intento con Bearer en ${model} no disponible:`, errB.message);
-                    }
+                    } catch (errB) {}
                 }
             }
             throw new Error('No se pudo autenticar o conectar con Gemini API');
@@ -2326,7 +2560,7 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
 
             summary += urgent
                 ? `CONDUCTA: Se recomienda valoración médica prioritaria en su EPS el día de hoy para confirmación diagnóstica.`
-                : `CONDUCTA: Mantener hidratación constante durante la jornada, alimentación balanceada, descanso adecuado y control médico preventivo periódico en su EPS.`;
+                : `CONDUCTA: Mantener hidratación constante durante la jornada, alimentación balanceada y control médico preventivo periódico en su EPS.`;
 
             return summary;
         }
@@ -2338,10 +2572,9 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
             await updatePatientRecord({
                 observaciones_finales: notes,
                 completado: true
-            }, 'Observaciones y cierre guardados en la nube');
+            }, 'Observaciones y cierre del circuito guardados');
         }
 
-        // --- 11. ENVÍO DE CARNET POR WHATSAPP ---
         function openWhatsAppModal(docFromDashboard = null) {
             if (docFromDashboard) {
                 selectedDoc = patients.find(p => p.documento === docFromDashboard) || null;
@@ -2420,7 +2653,6 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
                 cleanDigits = '57' + cleanDigits;
             }
 
-            // Sincronizar o autogenerar observaciones antes de enviar por WhatsApp
             const notesInput = document.getElementById('s7-notes');
             let liveNotes = currentStation === 'stand-7' ? cleanPlainText(notesInput?.value) : '';
             if (!liveNotes && !selectedDoc.observaciones_finales) {
@@ -2436,9 +2668,7 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
                             .update({ observaciones_finales: liveNotes, completado: true })
                             .eq('documento', selectedDoc.documento);
                         resetFormDirtyFlags();
-                    } catch (errSync) {
-                        console.warn('No se pudo sincronizar nota antes de enviar WhatsApp:', errSync);
-                    }
+                    } catch (errSync) {}
                 }
             }
 
@@ -2450,7 +2680,6 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
             showToast('Abriendo WhatsApp con el carnet del participante...', 'success');
         }
 
-        // --- 12. IMPRESIÓN Y VISTA PREVIA DEL CARNET ---
         function populatePrintableReport() {
             if (!selectedDoc) return;
             const p = selectedDoc;
@@ -2541,9 +2770,7 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
                                 .update({ observaciones_finales: liveNotes, completado: true })
                                 .eq('documento', selectedDoc.documento);
                             resetFormDirtyFlags();
-                        } catch (e) {
-                            console.warn('No se pudo sincronizar la nota previa a imprimir:', e);
-                        }
+                        } catch (e) {}
                     }
                 }
             }
@@ -2552,7 +2779,6 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
             setTimeout(() => window.print(), 180);
         }
 
-        // --- 13. DASHBOARD, GRÁFICOS ESTADÍSTICOS, EDICIÓN, ELIMINACIÓN Y EXCEL ---
         function checkPatientAlert(p) {
             const glucType = p.tipo_toma || 'ayunas';
             return (
@@ -2572,15 +2798,11 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
             const textColor = isDark ? '#cbd5e1' : '#475569';
             const gridColor = isDark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(148, 163, 184, 0.25)';
 
-            // 1. Datos de IMC
             const imcCounts = { bajo: 0, normal: 0, sobrepeso: 0, obesidad: 0, pendiente: 0 };
-            // 2. Datos de Presión Arterial
             const bpCounts = { normal: 0, elevada: 0, hta1: 0, hta2: 0, hipo: 0 };
-            // 3. Datos por Estamento (Inscritos vs Alertas)
             const roleStats = {};
 
             patients.forEach(p => {
-                // Conteo IMC
                 if (!hasVal(p.imc)) {
                     imcCounts.pendiente++;
                 } else if (p.imc < 18.5) {
@@ -2593,7 +2815,6 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
                     imcCounts.obesidad++;
                 }
 
-                // Conteo Presión Arterial
                 if (hasVal(p.presion_sistolica) && hasVal(p.presion_diastolica)) {
                     const sys = p.presion_sistolica;
                     const dia = p.presion_diastolica;
@@ -2604,14 +2825,12 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
                     else bpCounts.normal++;
                 }
 
-                // Conteo por Rol
                 const role = p.area || 'Otro';
                 if (!roleStats[role]) roleStats[role] = { total: 0, alerts: 0 };
                 roleStats[role].total++;
                 if (checkPatientAlert(p)) roleStats[role].alerts++;
             });
 
-            // Verificar si los datos o el tema cambiaron antes de reconstruir los gráficos
             const currentSignature = JSON.stringify({ isDark, imcCounts, bpCounts, roleStats });
             if (!forceRedraw && currentSignature === lastChartsSignature && chartIMCInstance && chartBPInstance && chartRolesInstance) {
                 return;
@@ -2619,7 +2838,6 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
             const isFirstRender = !lastChartsSignature;
             lastChartsSignature = currentSignature;
 
-            // Renderizar Gráfico 1: Dona de IMC
             const ctxImc = document.getElementById('chart-imc');
             if (ctxImc) {
                 if (chartIMCInstance) chartIMCInstance.destroy();
@@ -2648,7 +2866,6 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
                 });
             }
 
-            // Renderizar Gráfico 2: Barras de Presión Arterial (AHA)
             const ctxBp = document.getElementById('chart-bp');
             if (ctxBp) {
                 if (chartBPInstance) chartBPInstance.destroy();
@@ -2667,25 +2884,15 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
                         responsive: true,
                         maintainAspectRatio: false,
                         animation: isFirstRender ? { duration: 500 } : false,
-                        plugins: {
-                            legend: { display: false }
-                        },
+                        plugins: { legend: { display: false } },
                         scales: {
-                            x: {
-                                ticks: { color: textColor, font: { size: 10 } },
-                                grid: { display: false }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                ticks: { color: textColor, stepSize: 1, font: { size: 10 } },
-                                grid: { color: gridColor }
-                            }
+                            x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
+                            y: { beginAtZero: true, ticks: { color: textColor, stepSize: 1, font: { size: 10 } }, grid: { color: gridColor } }
                         }
                     }
                 });
             }
 
-            // Renderizar Gráfico 3: Inscritos vs Alertas por Estamento
             const ctxRoles = document.getElementById('chart-roles');
             if (ctxRoles) {
                 if (chartRolesInstance) chartRolesInstance.destroy();
@@ -2697,18 +2904,8 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
                     data: {
                         labels: roleLabels.map(shortenLabel),
                         datasets: [
-                            {
-                                label: 'Inscritos',
-                                data: roleLabels.map(r => roleStats[r]?.total || 0),
-                                backgroundColor: '#3b82f6',
-                                borderRadius: 5
-                            },
-                            {
-                                label: 'Con Alerta',
-                                data: roleLabels.map(r => roleStats[r]?.alerts || 0),
-                                backgroundColor: '#f43f5e',
-                                borderRadius: 5
-                            }
+                            { label: 'Inscritos', data: roleLabels.map(r => roleStats[r]?.total || 0), backgroundColor: '#3b82f6', borderRadius: 5 },
+                            { label: 'Con Alerta', data: roleLabels.map(r => roleStats[r]?.alerts || 0), backgroundColor: '#f43f5e', borderRadius: 5 }
                         ]
                     },
                     options: {
@@ -2722,15 +2919,8 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
                             }
                         },
                         scales: {
-                            x: {
-                                ticks: { color: textColor, font: { size: 10 } },
-                                grid: { display: false }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                ticks: { color: textColor, stepSize: 1, font: { size: 10 } },
-                                grid: { color: gridColor }
-                            }
+                            x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
+                            y: { beginAtZero: true, ticks: { color: textColor, stepSize: 1, font: { size: 10 } }, grid: { color: gridColor } }
                         }
                     }
                 });
@@ -2777,16 +2967,16 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
                     <td class="py-3 px-3 text-xs font-semibold whitespace-nowrap">${hasVal(p.glucometria) ? `${escapeHTML(p.glucometria)} mg/dL` : '<span class="text-slate-400">--</span>'}</td>
                     <td class="py-3 px-4 text-right whitespace-nowrap">
                         <div class="inline-flex items-center justify-end gap-1.5">
-                            <button type="button" data-doc="${safeDocAttr}" onclick="openWhatsAppModal(this.dataset.doc)" title="Enviar resultados por WhatsApp" class="p-1.5 px-2.5 rounded-lg text-xs font-bold bg-[#25D366]/15 text-[#25D366] hover:bg-[#25D366] hover:text-white transition cursor-pointer">
+                            <button type="button" data-doc="${safeDocAttr}" onclick="openWhatsAppModal(this.dataset.doc)" title="Enviar por WhatsApp" class="p-1.5 px-2.5 rounded-lg text-xs font-bold bg-[#25D366]/15 text-[#25D366] hover:bg-[#25D366] hover:text-white transition cursor-pointer">
                                 <i class="fa-brands fa-whatsapp"></i>
                             </button>
-                            <button type="button" data-doc="${safeDocAttr}" onclick="openCarnetFromDashboard(this.dataset.doc)" title="Ver e imprimir Carnet" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600/15 text-emerald-500 hover:bg-emerald-600 hover:text-white transition cursor-pointer">
+                            <button type="button" data-doc="${safeDocAttr}" onclick="openCarnetFromDashboard(this.dataset.doc)" title="Ver Carnet" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600/15 text-emerald-500 hover:bg-emerald-600 hover:text-white transition cursor-pointer">
                                 <i class="fa-solid fa-print sm:mr-1"></i><span class="hidden sm:inline">Carnet</span>
                             </button>
-                            <button type="button" data-doc="${safeDocAttr}" onclick="openEditPatientModal(this.dataset.doc)" title="Editar datos del participante" class="p-1.5 px-2.5 rounded-lg text-xs font-bold bg-blue-500/15 text-blue-500 hover:bg-blue-600 hover:text-white transition cursor-pointer">
+                            <button type="button" data-doc="${safeDocAttr}" onclick="openEditPatientModal(this.dataset.doc)" title="Editar" class="p-1.5 px-2.5 rounded-lg text-xs font-bold bg-blue-500/15 text-blue-500 hover:bg-blue-600 hover:text-white transition cursor-pointer">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
-                            <button type="button" data-doc="${safeDocAttr}" onclick="openDeletePatientModal(this.dataset.doc)" title="Eliminar registro" class="p-1.5 px-2.5 rounded-lg text-xs font-bold bg-rose-500/15 text-rose-500 hover:bg-rose-600 hover:text-white transition cursor-pointer">
+                            <button type="button" data-doc="${safeDocAttr}" onclick="openDeletePatientModal(this.dataset.doc)" title="Eliminar" class="p-1.5 px-2.5 rounded-lg text-xs font-bold bg-rose-500/15 text-rose-500 hover:bg-rose-600 hover:text-white transition cursor-pointer">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </div>
@@ -2800,26 +2990,28 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
             if (selectedDoc) previewCarnetModal();
         }
 
-        // --- FUNCIONES DE EDICIÓN EN EL DASHBOARD ---
         const DEFAULT_ROLES = [
-            'Docente',
-            'Estudiante',
-            'Directivo / Coordinador',
-            'Administrativo',
-            'Servicios Generales',
-            'Padre / Madre de Familia',
-            'Visitante / Invitado'
+            'Docente', 'Estudiante', 'Directivo / Coordinador', 'Administrativo',
+            'Servicios Generales', 'Padre / Madre de Familia', 'Visitante / Invitado'
         ];
+
+        function setSelectValueSafe(selectId, value, fallbackValue) {
+            const sel = document.getElementById(selectId);
+            if (!sel) return;
+            const target = value || fallbackValue;
+            const exists = Array.from(sel.options).some(opt => opt.value === target);
+            sel.value = exists ? target : fallbackValue;
+        }
 
         function openEditPatientModal(docNumber) {
             const p = patients.find(item => item.documento === docNumber);
-            if (!p) return showToast('No se encontró el registro del participante', 'error');
+            if (!p) return showToast('No se encontró el registro', 'error');
 
             document.getElementById('edit-original-doc').value = p.documento;
             document.getElementById('edit-doc').value = p.documento || '';
             document.getElementById('edit-name').value = p.nombre_docente || '';
             document.getElementById('edit-age').value = p.edad ?? '';
-            document.getElementById('edit-gender').value = p.sexo || 'Femenino';
+            setSelectValueSafe('edit-gender', p.sexo, 'Femenino');
 
             const areaSelect = document.getElementById('edit-area');
             if (areaSelect) {
@@ -2834,9 +3026,9 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
                 areaSelect.value = currentArea;
             }
 
-            document.getElementById('edit-smoking').value = p.tabaquismo || 'No fuma';
-            document.getElementById('edit-activity').value = p.actividad_fisica || 'Sedentario (< 150 min/sem)';
-            document.getElementById('edit-history').value = p.antecedente_previo || 'Ninguno conocido';
+            setSelectValueSafe('edit-smoking', p.tabaquismo, 'No fuma');
+            setSelectValueSafe('edit-activity', p.actividad_fisica, 'Sedentario (< 150 min/sem)');
+            setSelectValueSafe('edit-history', p.antecedente_previo, 'Ninguno conocido');
 
             document.getElementById('modal-edit-patient')?.classList.remove('hidden');
         }
@@ -2859,7 +3051,7 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
             const activity = document.getElementById('edit-activity').value;
             const history = document.getElementById('edit-history').value;
 
-            if (!newDoc || !name || isNaN(age)) {
+            if (!newDoc || !name || isNaN(age) || newDoc === SYSTEM_CONFIG_DOC_ID) {
                 return showToast('Verifica documento, nombre y edad', 'error');
             }
 
@@ -2904,7 +3096,7 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
 
                 closeEditPatientModal();
                 updateUIState();
-                showToast(`Registro de ${name} actualizado`, 'success');
+                showSaveSuccessModal('¡Registro Actualizado!', 'Cambios guardados en Supabase', `${name} • Doc. ${newDoc}`);
             } catch (err) {
                 showToast(err.message || 'Error al actualizar el registro', 'error');
             } finally {
@@ -2912,7 +3104,6 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
             }
         }
 
-        // --- FUNCIONES DE ELIMINACIÓN CON CONFIRMACIÓN EN EL DASHBOARD ---
         function openDeletePatientModal(docNumber) {
             const p = patients.find(item => item.documento === docNumber);
             if (!p) return showToast('No se encontró el registro', 'error');
@@ -3003,58 +3194,16 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
                     }));
 
                     const worksheet = XLSX.utils.json_to_sheet(excelRows);
-
-                    const colWidths = Object.keys(excelRows[0]).map(key => {
-                        const maxCellLen = excelRows.reduce((max, row) => {
-                            const valStr = row[key] !== null && row[key] !== undefined ? String(row[key]) : '';
-                            return Math.max(max, valStr.length);
-                        }, key.length);
-                        return { wch: Math.min(Math.max(maxCellLen + 3, 12), 55) };
-                    });
-                    worksheet['!cols'] = colWidths;
-
                     const workbook = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(workbook, worksheet, 'Tamizaje PromoHealth');
 
                     XLSX.writeFile(workbook, `PromoHealth_Reporte_${fileDate}.xlsx`);
                     showToast('Archivo Excel (.xlsx) descargado con éxito', 'success');
                     return;
-                } catch (err) {
-                    console.error('Error generando .xlsx, usando respaldo CSV:', err);
-                }
+                } catch (err) {}
             }
-
-            const headers = [
-                'Documento', 'Nombre Participante', 'Edad', 'Sexo', 'Estamento / Rol',
-                'Tabaquismo', 'Actividad Fisica', 'Antecedentes',
-                'Temperatura (C)', 'Estado Temperatura',
-                'SpO2 (%)', 'Frecuencia Cardiaca (LPM)',
-                'Peso (kg)', 'Altura (cm)', 'IMC', 'Estado IMC',
-                'Sistolica', 'Diastolica', 'Estado Presion',
-                'Glucometria', 'Tipo Toma', 'Estado Glucometria', 'Observaciones'
-            ];
-
-            const rows = patients.map(p => [
-                p.documento, p.nombre_docente, p.edad, p.sexo, p.area,
-                p.tabaquismo, p.actividad_fisica, p.antecedente_previo,
-                p.temperatura, p.estado_temperatura,
-                p.oximetria, p.frecuencia_cardiaca,
-                p.peso, p.altura, p.imc, p.estado_imc,
-                p.presion_sistolica, p.presion_diastolica, p.estado_presion,
-                p.glucometria, p.tipo_toma, p.estado_glucometria, p.observaciones_finales
-            ].map(escapeCSV).join(','));
-
-            const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `PromoHealth_Reporte_${fileDate}.csv`;
-            link.click();
-            URL.revokeObjectURL(url);
         }
 
-        // --- 14. NOTIFICACIONES TOAST ---
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             if (!container) return;
