@@ -984,7 +984,7 @@
                         </label>
                         <div class="flex items-center gap-2">
                             <span class="px-3.5 py-2.5 rounded-xl text-sm font-bold bg-slate-100 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 select-none">
-                                🇨🇴 +57
+                                +57
                             </span>
                             <input type="tel" id="wa-phone-input" inputmode="numeric" required placeholder="Ej. 3001234567" class="flex-1 px-4 py-2.5 rounded-xl text-base font-bold bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-[#25D366] outline-none">
                         </div>
@@ -1116,7 +1116,7 @@
                     </div>
                     <div>
                         <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Promo<span class="text-emerald-600">Health</span></h1>
-                        <p class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Feria Centros de Interés INEM • Guardianes de Vida</p>
+                        <p class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Feria Centros de Interés • Guardianes de la Vida</p>
                     </div>
                 </div>
                 <div class="text-right text-xs text-slate-600">
@@ -1212,6 +1212,7 @@
         let isSavingRecord = false;
         let currentStation = 'stand-1';
         let geminiApiKey = localStorage.getItem('promohealth_gemini_key') || '';
+        const recentlyClearedFields = new Set();
 
         const DEFAULT_STAFF_PIN = '1234';
         const DEFAULT_COORDINATOR_PIN = '2026';
@@ -1399,6 +1400,13 @@
             }
         }
 
+        function destroyDashboardCharts() {
+            if (chartIMCInstance) { chartIMCInstance.destroy(); chartIMCInstance = null; }
+            if (chartBPInstance) { chartBPInstance.destroy(); chartBPInstance = null; }
+            if (chartRolesInstance) { chartRolesInstance.destroy(); chartRolesInstance = null; }
+            lastChartsSignature = '';
+        }
+
         function lockEntireApplication() {
             isAppUnlocked = false;
             isCoordinatorUnlocked = false;
@@ -1414,6 +1422,7 @@
                 realtimeChannel = null;
             }
 
+            destroyDashboardCharts();
             closeStationModal();
             document.getElementById('app-root')?.classList.add('hidden');
             document.getElementById('app-lock-screen')?.classList.remove('hidden');
@@ -1436,13 +1445,18 @@
             standInputs.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
-                    el.addEventListener('input', () => { el.dataset.dirty = 'true'; });
-                    el.addEventListener('change', () => { el.dataset.dirty = 'true'; });
+                    const markDirty = () => {
+                        el.dataset.dirty = 'true';
+                        recentlyClearedFields.delete(id);
+                    };
+                    el.addEventListener('input', markDirty);
+                    el.addEventListener('change', markDirty);
                 }
             });
         }
 
         function resetFormDirtyFlags() {
+            recentlyClearedFields.clear();
             const standInputs = [
                 's2-temp',
                 's3-oxi', 's3-pulse',
@@ -1812,6 +1826,9 @@
 
         function onSelectPatient(docNumber) {
             resetFormDirtyFlags();
+            const aiStatus = document.getElementById('ai-status-indicator');
+            if (aiStatus) aiStatus.textContent = '';
+
             if (!docNumber) {
                 selectedDoc = null;
                 clearAllStandForms();
@@ -1888,6 +1905,7 @@
             if (force) return true;
             if (document.activeElement === el) return false;
             if (el.dataset.dirty === 'true') return false;
+            if (recentlyClearedFields.has(el.id)) return false;
             return true;
         }
 
@@ -1910,7 +1928,9 @@
                 const elPulse = document.getElementById('s3-pulse');
                 if (shouldPopulateField(elOxi, force)) elOxi.value = selectedDoc.oximetria ?? '';
                 if (shouldPopulateField(elPulse, force)) elPulse.value = selectedDoc.frecuencia_cardiaca ?? '';
-                evalLiveOxi();
+                if (!recentlyClearedFields.has('s3-oxi') && !recentlyClearedFields.has('s3-pulse')) {
+                    evalLiveOxi();
+                }
             }
 
             if (currentStation === 'stand-4') {
@@ -1918,7 +1938,9 @@
                 const elH = document.getElementById('s4-height');
                 if (shouldPopulateField(elW, force)) elW.value = selectedDoc.peso ?? '';
                 if (shouldPopulateField(elH, force)) elH.value = selectedDoc.altura ?? '';
-                evalLiveIMC();
+                if (!recentlyClearedFields.has('s4-weight') && !recentlyClearedFields.has('s4-height')) {
+                    evalLiveIMC();
+                }
             }
 
             if (currentStation === 'stand-5') {
@@ -1926,7 +1948,9 @@
                 const elDia = document.getElementById('s5-dia');
                 if (shouldPopulateField(elSys, force)) elSys.value = selectedDoc.presion_sistolica ?? '';
                 if (shouldPopulateField(elDia, force)) elDia.value = selectedDoc.presion_diastolica ?? '';
-                evalLiveBP();
+                if (!recentlyClearedFields.has('s5-sys') && !recentlyClearedFields.has('s5-dia')) {
+                    evalLiveBP();
+                }
             }
 
             if (currentStation === 'stand-6') {
@@ -1934,7 +1958,9 @@
                 const elType = document.getElementById('s6-type');
                 if (shouldPopulateField(elGluc, force)) elGluc.value = selectedDoc.glucometria ?? '';
                 if (selectedDoc.tipo_toma && shouldPopulateField(elType, force)) elType.value = selectedDoc.tipo_toma;
-                evalLiveGlucose();
+                if (!recentlyClearedFields.has('s6-glucose')) {
+                    evalLiveGlucose();
+                }
             }
 
             if (currentStation === 'stand-7') {
@@ -1994,8 +2020,8 @@
             const activity = document.getElementById('s1-activity').value;
             const history = document.getElementById('s1-history').value;
 
-            if (!doc || !name || isNaN(age) || doc === SYSTEM_CONFIG_DOC_ID) {
-                return showToast('Completa los campos obligatorios con un documento válido', 'error');
+            if (!doc || !name || isNaN(age) || age < 5 || age > 99 || doc === SYSTEM_CONFIG_DOC_ID) {
+                return showToast('Verifica documento, nombre y edad (5 - 99 años)', 'error');
             }
 
             const btn = document.getElementById('btn-submit-s1');
@@ -2037,7 +2063,7 @@
             }
         }
 
-        async function updatePatientRecord(fields, successMessage, inputElementIdToClear = null) {
+        async function updatePatientRecord(fields, successMessage, inputIdsToClear = []) {
             if (!selectedDoc) {
                 return showToast('Primero selecciona un participante en el desplegable superior', 'error');
             }
@@ -2066,17 +2092,23 @@
                 updateUIState();
                 showSaveSuccessModal('¡Guardado en la Nube!', successMessage, `${selectedDoc.nombre_docente} (${countCompletedStands(selectedDoc)}/5 estaciones)`);
 
-                if (inputElementIdToClear) {
+                const idsList = Array.isArray(inputIdsToClear) ? inputIdsToClear : (inputIdsToClear ? [inputIdsToClear] : []);
+                if (idsList.length > 0) {
+                    const docAtSave = selectedDoc.documento;
                     setTimeout(() => {
-                        const el = document.getElementById(inputElementIdToClear);
-                        if (el) {
-                            el.value = '';
-                            if (inputElementIdToClear === 's2-temp') evalLiveTemp('');
-                            if (inputElementIdToClear === 's3-oxi') evalLiveOxi();
-                            if (inputElementIdToClear === 's4-weight') evalLiveIMC();
-                            if (inputElementIdToClear === 's5-sys') evalLiveBP();
-                            if (inputElementIdToClear === 's6-glucose') evalLiveGlucose();
-                        }
+                        if (!selectedDoc || selectedDoc.documento !== docAtSave) return;
+                        idsList.forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el) {
+                                el.value = '';
+                                recentlyClearedFields.add(id);
+                            }
+                        });
+                        if (idsList.includes('s2-temp')) evalLiveTemp('');
+                        if (idsList.includes('s3-oxi') || idsList.includes('s3-pulse')) evalLiveOxi();
+                        if (idsList.includes('s4-weight') || idsList.includes('s4-height')) evalLiveIMC();
+                        if (idsList.includes('s5-sys') || idsList.includes('s5-dia')) evalLiveBP();
+                        if (idsList.includes('s6-glucose')) evalLiveGlucose();
                     }, 1350);
                 }
             } catch (err) {
@@ -2163,13 +2195,14 @@
             e.preventDefault();
             const oxi = parseInt(document.getElementById('s3-oxi').value, 10);
             const pulse = parseInt(document.getElementById('s3-pulse').value, 10);
-            if (isNaN(oxi) || isNaN(pulse)) return showToast('Completa SpO2 y pulso', 'error');
+            if (isNaN(oxi) || oxi < 50 || oxi > 100) return showToast('Ingresa una saturación SpO2 válida (50% - 100%)', 'error');
+            if (isNaN(pulse) || pulse < 30 || pulse > 220) return showToast('Ingresa una frecuencia cardíaca válida (30 - 220 LPM)', 'error');
             await updatePatientRecord({
                 oximetria: oxi,
                 frecuencia_cardiaca: pulse,
                 estado_oxigeno: classifyOxi(oxi).label,
                 estado_pulso: classifyPulse(pulse).label
-            }, `SpO2: ${oxi}% • Pulso: ${pulse} LPM`, 's3-oxi');
+            }, `SpO2: ${oxi}% • Pulso: ${pulse} LPM`, ['s3-oxi', 's3-pulse']);
         }
 
         function classifyIMC(imc) {
@@ -2206,9 +2239,11 @@
             e.preventDefault();
             const w = parseDecimalInput(document.getElementById('s4-weight').value);
             let h = parseDecimalInput(document.getElementById('s4-height').value);
-            if (isNaN(w) || isNaN(h) || w <= 0 || h <= 0) return showToast('Valores inválidos de peso o talla', 'error');
+            if (isNaN(w) || w < 10 || w > 300) return showToast('Ingresa un peso válido (10 - 300 kg)', 'error');
 
             const hCm = h < 3 ? Math.round(h * 100) : h;
+            if (isNaN(hCm) || hCm < 50 || hCm > 250) return showToast('Ingresa una talla válida (ej. 165 cm o 1,65 m)', 'error');
+
             const hMeters = hCm / 100;
             const imc = parseFloat((w / (hMeters * hMeters)).toFixed(1));
             const res = classifyIMC(imc);
@@ -2218,7 +2253,7 @@
                 altura: hCm,
                 imc: imc,
                 estado_imc: res.label
-            }, `IMC: ${imc} kg/m² (${res.label})`, 's4-weight');
+            }, `IMC: ${imc} kg/m² (${res.label})`, ['s4-weight', 's4-height']);
         }
 
         function classifyBP(sys, dia) {
@@ -2250,14 +2285,19 @@
             e.preventDefault();
             const sys = parseInt(document.getElementById('s5-sys').value, 10);
             const dia = parseInt(document.getElementById('s5-dia').value, 10);
-            if (isNaN(sys) || isNaN(dia)) return showToast('Ingresa sistólica y diastólica válidas', 'error');
+            if (isNaN(sys) || isNaN(dia) || sys < 50 || sys > 280 || dia < 30 || dia > 180) {
+                return showToast('Ingresa cifras de presión arterial válidas', 'error');
+            }
+            if (sys <= dia) {
+                return showToast('La presión sistólica (alta) debe ser mayor que la diastólica (baja)', 'error');
+            }
             const res = classifyBP(sys, dia);
 
             await updatePatientRecord({
                 presion_sistolica: sys,
                 presion_diastolica: dia,
                 estado_presion: res.label
-            }, `Tensión: ${sys}/${dia} mmHg (${res.label})`, 's5-sys');
+            }, `Tensión: ${sys}/${dia} mmHg (${res.label})`, ['s5-sys', 's5-dia']);
         }
 
         function classifyGlucose(val, type) {
@@ -2293,7 +2333,7 @@
             e.preventDefault();
             const val = parseInt(document.getElementById('s6-glucose').value, 10);
             const type = document.getElementById('s6-type').value;
-            if (isNaN(val)) return showToast('Ingresa un valor de glucometría válido', 'error');
+            if (isNaN(val) || val < 20 || val > 600) return showToast('Ingresa un valor de glucometría válido (20 - 600 mg/dL)', 'error');
             const res = classifyGlucose(val, type);
 
             await updatePatientRecord({
@@ -2455,7 +2495,7 @@
 
             const roleText = p.area || 'Participante de la comunidad educativa';
 
-            const prompt = `Actúa como médico experto en medicina preventiva y salud escolar en Colombia. Analiza estos resultados de tamizaje de un participante de la feria de la salud (${roleText}) y redacta una impresión diagnóstica breve (máximo 200 palabras), empática y con recomendaciones prácticas adaptadas a su edad (${p.edad} años) y a su rol (${roleText}).
+            const prompt = `Actúa como médico experto en medicina preventiva y salud escolar en Colombia. Analiza estos resultados de tamizaje de un participante de la feria de la salud (${roleText}) y redacta una impresión diagnóstica breve (máximo 250 palabras), empática y con recomendaciones prácticas adaptadas a su edad (${p.edad} años) y a su rol (${roleText}).
 REGLA DE FORMATO ESTRICTA: Escribe ÚNICAMENTE en texto plano continuo. NO uses formato Markdown, NO uses asteriscos (**), NO uses numerales (#) ni guiones de lista.
 Datos del participante:
 - Nombre: ${p.nombre_docente}, ${p.edad} años, ${p.sexo}, Rol/Estamento: ${roleText}.
@@ -2567,8 +2607,12 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
 
         async function saveStand7Notes() {
             if (!selectedDoc) return showToast('Selecciona primero un participante', 'error');
-            const notes = cleanPlainText(document.getElementById('s7-notes').value);
-            document.getElementById('s7-notes').value = notes;
+            const notesInput = document.getElementById('s7-notes');
+            let notes = cleanPlainText(notesInput?.value);
+            if (!notes) {
+                notes = buildClinicalExpertImpression(selectedDoc);
+            }
+            if (notesInput) notesInput.value = notes;
             await updatePatientRecord({
                 observaciones_finales: notes,
                 completado: true
@@ -2603,6 +2647,22 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
             const liveNotes = currentStation === 'stand-7' ? document.getElementById('s7-notes')?.value.trim() : '';
             const finalNotes = cleanPlainText(liveNotes || p.observaciones_finales || buildClinicalExpertImpression(p));
 
+            const EMO = {
+                hospital: '\uD83C\uDFE5',
+                calendar: '\uD83D\uDCC5',
+                person:   '\uD83D\uDC64',
+                idCard:   '\uD83E\uDEAA',
+                gradCap:  '\uD83C\uDF93',
+                chart:    '\uD83D\uDCCA',
+                thermo:   '\uD83C\uDF21\uFE0F',
+                lungs:    '\uD83E\uDEC1',
+                heart:    '\uD83D\uDC93',
+                scale:    '\u2696\uFE0F',
+                stetho:   '\uD83E\uDE7A',
+                drop:     '\uD83E\uDE78',
+                clip:     '\uD83D\uDCCB'
+            };
+
             const tempStr = hasVal(p.temperatura) ? `${p.temperatura} °C (${p.estado_temperatura || 'Normal'})` : 'Pendiente';
             const oxiStr = hasVal(p.oximetria) ? `${p.oximetria}% SpO2 (${p.estado_oxigeno || 'Normal'})` : 'Pendiente';
             const pulseStr = hasVal(p.frecuencia_cardiaca) ? `${p.frecuencia_cardiaca} LPM (${p.estado_pulso || 'Normal'})` : 'Pendiente';
@@ -2615,22 +2675,22 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
                 : 'Pendiente';
 
             return [
-                `🏥 *PROMOHEALTH • CARNET DE TAMIZAJE ESCOLAR*`,
-                `📅 *Fecha:* ${dateStr}`,
+                `${EMO.hospital} *PROMOHEALTH • CARNET DE TAMIZAJE ESCOLAR*`,
+                `${EMO.calendar} *Fecha:* ${dateStr}`,
                 ``,
-                `👤 *Participante:* ${p.nombre_docente}`,
-                `🪪 *Documento:* ${p.documento}`,
-                `🎓 *Rol / Estamento:* ${p.area || 'Participante'} (${p.edad} años • ${p.sexo})`,
+                `${EMO.person} *Participante:* ${p.nombre_docente}`,
+                `${EMO.idCard} *Documento:* ${p.documento}`,
+                `${EMO.gradCap} *Rol / Estamento:* ${p.area || 'Participante'} (${p.edad} años • ${p.sexo})`,
                 ``,
-                `📊 *RESULTADOS DEL CIRCUITO CLÍNICO:*`,
-                `🌡️ *Temperatura:* ${tempStr}`,
-                `🫁 *Oximetría:* ${oxiStr}`,
-                `💓 *Pulso:* ${pulseStr}`,
-                `⚖️ *Antropometría (IMC):* ${imcStr}`,
-                `🩺 *Presión Arterial:* ${bpStr}`,
-                `🩸 *Glucometría:* ${glucStr}`,
+                `${EMO.chart} *RESULTADOS DEL CIRCUITO CLÍNICO:*`,
+                `${EMO.thermo} *Temperatura:* ${tempStr}`,
+                `${EMO.lungs} *Oximetría:* ${oxiStr}`,
+                `${EMO.heart} *Pulso:* ${pulseStr}`,
+                `${EMO.scale} *Antropometría (IMC):* ${imcStr}`,
+                `${EMO.stetho} *Presión Arterial:* ${bpStr}`,
+                `${EMO.drop} *Glucometría:* ${glucStr}`,
                 ``,
-                `📋 *IMPRESIÓN DIAGNÓSTICA Y RECOMENDACIONES:*`,
+                `${EMO.clip} *IMPRESIÓN DIAGNÓSTICA Y RECOMENDACIONES:*`,
                 `${finalNotes}`,
                 ``,
                 `_Nota: Este tamizaje escolar es preventivo y educativo; no reemplaza una consulta médica formal._`,
@@ -2673,7 +2733,7 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
             }
 
             const message = buildWhatsAppMessage(selectedDoc);
-            const waUrl = `https://wa.me/${cleanDigits}?text=${encodeURIComponent(message)}`;
+            const waUrl = `https://api.whatsapp.com/send?phone=${cleanDigits}&text=${encodeURIComponent(message)}`;
 
             closeWhatsAppModal();
             window.open(waUrl, '_blank', 'noopener,noreferrer');
@@ -3051,8 +3111,8 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
             const activity = document.getElementById('edit-activity').value;
             const history = document.getElementById('edit-history').value;
 
-            if (!newDoc || !name || isNaN(age) || newDoc === SYSTEM_CONFIG_DOC_ID) {
-                return showToast('Verifica documento, nombre y edad', 'error');
+            if (!newDoc || !name || isNaN(age) || age < 5 || age > 99 || newDoc === SYSTEM_CONFIG_DOC_ID) {
+                return showToast('Verifica documento, nombre y edad (5 - 99 años)', 'error');
             }
 
             if (newDoc !== originalDoc && patients.some(p => p.documento === newDoc)) {
@@ -3200,8 +3260,29 @@ Indica al final si requiere control regular o valoración prioritaria en su EPS.
                     XLSX.writeFile(workbook, `PromoHealth_Reporte_${fileDate}.xlsx`);
                     showToast('Archivo Excel (.xlsx) descargado con éxito', 'success');
                     return;
-                } catch (err) {}
+                } catch (err) {
+                    console.warn("Fallo en XLSX, generando respaldo CSV:", err);
+                }
             }
+
+            // Respaldo CSV UTF-8 con BOM
+            const headers = ['Documento', 'Nombre', 'Edad', 'Sexo', 'Rol', 'Temperatura', 'SpO2', 'Pulso', 'IMC', 'Sistolica', 'Diastolica', 'Glucometria', 'Observaciones'];
+            const lines = [headers.map(escapeCSV).join(';')];
+            patients.forEach(p => {
+                lines.push([
+                    p.documento, p.nombre_docente, p.edad, p.sexo, p.area,
+                    p.temperatura, p.oximetria, p.frecuencia_cardiaca, p.imc,
+                    p.presion_sistolica, p.presion_diastolica, p.glucometria, p.observaciones_finales
+                ].map(escapeCSV).join(';'));
+            });
+            const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `PromoHealth_Reporte_${fileDate}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Archivo CSV descargado con éxito', 'success');
         }
 
         function showToast(message, type = 'info') {
