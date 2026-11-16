@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -125,39 +127,39 @@
         <!-- CONTENIDO PRINCIPAL -->
         <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
 
-            <!-- SELECTOR DE DOCENTE ACTIVO (Visible en Stands 2 al 7) -->
+            <!-- SELECTOR DE PARTICIPANTE ACTIVO (Visible en Stands 2 al 7) -->
             <section id="participant-picker-card" class="hidden bg-white dark:bg-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 sm:p-5 shadow-sm">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div class="flex-1 space-y-2">
                         <div class="flex items-center justify-between gap-2">
                             <label for="patient-select" class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-user-check"></i> Docente en Atención Actual
+                                <i class="fa-solid fa-user-check"></i> Participante en Atención Actual
                             </label>
                             <span id="registered-count-badge" class="text-xs font-medium text-slate-500 dark:text-slate-400 shrink-0">0 inscritos</span>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
-                            <!-- Buscador por Cédula o Nombre -->
+                            <!-- Buscador por Documento o Nombre -->
                             <div class="sm:col-span-5 relative">
                                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                                <input type="text" id="patient-search-input" oninput="filterPatientSelect()" onkeydown="handleSearchKeydown(event)" placeholder="Filtrar por cédula o nombre..." class="w-full pl-9 pr-3 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                                <input type="text" id="patient-search-input" oninput="filterPatientSelect()" onkeydown="handleSearchKeydown(event)" placeholder="Filtrar por documento, nombre o rol..." class="w-full pl-9 pr-3 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
                             </div>
 
-                            <!-- Desplegable de Docentes -->
+                            <!-- Desplegable de Participantes -->
                             <div class="sm:col-span-7">
                                 <select id="patient-select" onchange="onSelectPatient(this.value)" class="w-full px-3.5 py-2.5 rounded-xl text-sm font-medium bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
-                                    <option value="">-- Selecciona el Docente en este Stand --</option>
+                                    <option value="">-- Selecciona el Participante en este Stand --</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Cinta de Identificación del Docente Seleccionado -->
+                <!-- Cinta de Identificación del Participante Seleccionado -->
                 <div id="selected-patient-ribbon" class="hidden mt-3.5 pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                     <div class="flex items-center gap-2.5 min-w-0">
                         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm sm:text-base shrink-0">
-                            <i class="fa-solid fa-chalkboard-user"></i>
+                            <i class="fa-solid fa-hospital-user"></i>
                         </div>
                         <div class="min-w-0">
                             <h3 id="ribbon-name" class="font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate">--</h3>
@@ -189,11 +191,11 @@
                 <form id="form-stand-1" onsubmit="submitStand1(event)" class="space-y-5">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Documento / Cédula *</label>
-                            <input type="text" id="s1-doc" inputmode="numeric" required placeholder="Ej. 78745156" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Documento (C.C. / T.I.) *</label>
+                            <input type="text" id="s1-doc" inputmode="numeric" required placeholder="Ej. 1067890123" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Nombre Completo del Docente *</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Nombre Completo del Participante *</label>
                             <input type="text" id="s1-name" required placeholder="Ej. Carlos Salgado" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
                         </div>
                     </div>
@@ -201,7 +203,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Edad (Años) *</label>
-                            <input type="number" id="s1-age" inputmode="numeric" min="18" max="95" required placeholder="Ej. 45" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <input type="number" id="s1-age" inputmode="numeric" min="5" max="99" required placeholder="Ej. 16 o 45" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Sexo Biológico *</label>
@@ -211,8 +213,16 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Área o Asignatura</label>
-                            <input type="text" id="s1-area" placeholder="Ej. Ciencias / Primaria" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Estamento / Rol en la Comunidad *</label>
+                            <select id="s1-area" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <option value="Docente">Docente</option>
+                                <option value="Estudiante">Estudiante</option>
+                                <option value="Directivo / Coordinador">Directivo / Coordinador</option>
+                                <option value="Administrativo">Administrativo</option>
+                                <option value="Servicios Generales">Servicios Generales</option>
+                                <option value="Padre / Madre de Familia">Padre / Madre de Familia</option>
+                                <option value="Visitante / Invitado">Visitante / Invitado</option>
+                            </select>
                         </div>
                     </div>
 
@@ -220,11 +230,11 @@
                         <p class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-3">Hábitos y Antecedentes Clínicos</p>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Hábito Tabáquico *</label>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Hábito Tabáquico / Vapeo *</label>
                                 <select id="s1-smoking" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
                                     <option value="No fuma">No fuma</option>
                                     <option value="Exfumador">Exfumador</option>
-                                    <option value="Fumador activo">Fumador activo</option>
+                                    <option value="Fumador activo">Fumador / Vapeador activo</option>
                                 </select>
                             </div>
                             <div>
@@ -251,7 +261,7 @@
                     <div class="pt-3 flex justify-end">
                         <button type="submit" id="btn-submit-s1" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/25 transition cursor-pointer">
                             <i class="fa-solid fa-floppy-disk"></i>
-                            Inscribir Docente en PromoHealth
+                            Inscribir Participante en PromoHealth
                         </button>
                     </div>
                 </form>
@@ -359,11 +369,11 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-2">Peso Corporal (kg) *</label>
-                            <input type="number" step="0.1" id="s4-weight" inputmode="decimal" min="25" max="250" oninput="evalLiveIMC()" required placeholder="Ej. 72.5" class="w-full px-4 py-3.5 rounded-xl text-lg font-bold bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <input type="number" step="0.1" id="s4-weight" inputmode="decimal" min="15" max="250" oninput="evalLiveIMC()" required placeholder="Ej. 65.5" class="w-full px-4 py-3.5 rounded-xl text-lg font-bold bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-2">Estatura / Talla (cm o m) *</label>
-                            <input type="number" step="0.01" id="s4-height" inputmode="decimal" min="1.0" max="230" oninput="evalLiveIMC()" required placeholder="Ej. 170 o 1.70" class="w-full px-4 py-3.5 rounded-xl text-lg font-bold bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <input type="number" step="0.01" id="s4-height" inputmode="decimal" min="0.9" max="230" oninput="evalLiveIMC()" required placeholder="Ej. 165 o 1.65" class="w-full px-4 py-3.5 rounded-xl text-lg font-bold bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
                         </div>
                     </div>
 
@@ -517,13 +527,17 @@
                 </div>
 
                 <!-- Botones de Acción Final -->
-                <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <button type="button" onclick="saveStand7Notes()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white transition cursor-pointer">
+                <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row items-center justify-between gap-3">
+                    <button type="button" onclick="saveStand7Notes()" class="w-full lg:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white transition cursor-pointer">
                         <i class="fa-solid fa-cloud-arrow-up"></i>
                         Guardar Observación
                     </button>
 
-                    <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-3">
+                    <div class="w-full lg:w-auto flex flex-col sm:flex-row gap-2.5 sm:gap-3">
+                        <button type="button" onclick="openWhatsAppModal()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold bg-[#25D366] hover:bg-[#1ebe57] text-white shadow-md shadow-emerald-600/20 transition cursor-pointer">
+                            <i class="fa-brands fa-whatsapp text-base"></i>
+                            Enviar por WhatsApp
+                        </button>
                         <button type="button" onclick="previewCarnetModal()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 transition cursor-pointer">
                             <i class="fa-solid fa-eye"></i>
                             Vista Previa
@@ -543,7 +557,7 @@
                 <!-- Métricas Superiores -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <div class="bg-white dark:bg-navy-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                        <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 block">Docentes Inscritos</span>
+                        <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 block">Total Inscritos</span>
                         <div id="dash-total" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">0</div>
                     </div>
                     <div class="bg-white dark:bg-navy-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800">
@@ -560,24 +574,90 @@
                     </div>
                 </div>
 
+                <!-- Gráficos Estadísticos en Tiempo Real (Chart.js) -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <!-- Gráfico 1: Estado Nutricional (IMC) -->
+                    <div class="bg-white dark:bg-navy-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+                        <div class="flex items-center justify-between mb-3">
+                            <div>
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-500">Estado Nutricional (OMS)</h4>
+                                <p class="text-sm font-bold text-slate-900 dark:text-white">Distribución de IMC</p>
+                            </div>
+                            <span class="w-8 h-8 rounded-lg bg-indigo-500/15 text-indigo-500 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-weight-scale"></i>
+                            </span>
+                        </div>
+                        <div class="relative flex-1 min-h-[210px] flex items-center justify-center">
+                            <canvas id="chart-imc"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico 2: Clasificación de Presión Arterial (AHA) -->
+                    <div class="bg-white dark:bg-navy-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+                        <div class="flex items-center justify-between mb-3">
+                            <div>
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-rose-500">Riesgo Hemodinámico (AHA)</h4>
+                                <p class="text-sm font-bold text-slate-900 dark:text-white">Tamizaje de Presión Arterial</p>
+                            </div>
+                            <span class="w-8 h-8 rounded-lg bg-rose-500/15 text-rose-500 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-heart-pulse"></i>
+                            </span>
+                        </div>
+                        <div class="relative flex-1 min-h-[210px] flex items-center justify-center">
+                            <canvas id="chart-bp"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico 3: Participación y Alertas por Estamento -->
+                    <div class="bg-white dark:bg-navy-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+                        <div class="flex items-center justify-between mb-3">
+                            <div>
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-500">Comunidad Educativa</h4>
+                                <p class="text-sm font-bold text-slate-900 dark:text-white">Inscritos vs. Alertas por Rol</p>
+                            </div>
+                            <span class="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-500 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-users-viewfinder"></i>
+                            </span>
+                        </div>
+                        <div class="relative flex-1 min-h-[210px] flex items-center justify-center">
+                            <canvas id="chart-roles"></canvas>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Tabla Consolidada -->
                 <div class="bg-white dark:bg-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
                     <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
-                            <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Consolidado General de Tamizaje en Vivo</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400">Gestión exclusiva del Coordinador: impresión, edición de datos y depuración de registros</p>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Consolidado General de Tamizaje en Vivo</h3>
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-500 border border-amber-500/30">
+                                    <i class="fa-solid fa-shield-halved mr-1"></i>Modo Coordinador
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Gestión exclusiva del Coordinador: impresión, envío WhatsApp, edición y depuración</p>
                         </div>
-                        <button type="button" onclick="downloadCSVExport()" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition cursor-pointer shrink-0">
-                            <i class="fa-solid fa-file-excel"></i>
-                            Exportar Base a Excel (CSV)
-                        </button>
+                        <div class="flex flex-wrap items-center gap-2 shrink-0">
+                            <button type="button" onclick="openChangePinModal()" title="Cambiar PIN de acceso del Coordinador" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-navy-850 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer">
+                                <i class="fa-solid fa-key text-amber-500"></i>
+                                <span>Cambiar PIN</span>
+                            </button>
+                            <button type="button" onclick="lockCoordinatorSession()" title="Bloquear Tablero y volver al Stand 1" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold bg-rose-500/15 hover:bg-rose-600 text-rose-500 hover:text-white border border-rose-500/30 transition cursor-pointer">
+                                <i class="fa-solid fa-lock"></i>
+                                <span>Bloquear</span>
+                            </button>
+                            <button type="button" onclick="downloadExcelExport()" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition cursor-pointer">
+                                <i class="fa-solid fa-file-excel"></i>
+                                Exportar a Excel (.xlsx)
+                            </button>
+                        </div>
                     </div>
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-50 dark:bg-navy-950 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
-                                    <th class="py-3.5 px-4">Docente</th>
+                                    <th class="py-3.5 px-4">Participante / Estamento</th>
                                     <th class="py-3.5 px-3">Temp</th>
                                     <th class="py-3.5 px-3">SpO2 / Pulso</th>
                                     <th class="py-3.5 px-3">IMC</th>
@@ -620,7 +700,7 @@
                         <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold text-xs">S1</span>
                         <div>
                             <div class="font-bold text-sm text-slate-900 dark:text-white">Stand 1: Admisión e Inscripción</div>
-                            <div class="text-[11px] text-slate-500">Registro inicial, hábitos y antecedentes</div>
+                            <div class="text-[11px] text-slate-500">Registro inicial, rol en la comunidad y antecedentes</div>
                         </div>
                     </button>
                     <button type="button" onclick="setStation('stand-2')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-orange-500 hover:bg-orange-500/10 text-left transition cursor-pointer">
@@ -662,15 +742,20 @@
                         <span class="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-500 flex items-center justify-center font-bold text-xs">S7</span>
                         <div>
                             <div class="font-bold text-sm text-slate-900 dark:text-white">Stand 7: Auditoría, IA y Entrega</div>
-                            <div class="text-[11px] text-slate-500">Análisis clínico con IA e impresión de carnet PDF</div>
+                            <div class="text-[11px] text-slate-500">Análisis clínico con IA, WhatsApp e impresión PDF</div>
                         </div>
                     </button>
-                    <button type="button" onclick="setStation('dashboard')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-amber-500 hover:bg-amber-500/10 text-left transition cursor-pointer">
-                        <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-500 flex items-center justify-center font-bold text-xs"><i class="fa-solid fa-chart-pie"></i></span>
-                        <div>
-                            <div class="font-bold text-sm text-slate-900 dark:text-white">Tablero General (Coordinador)</div>
-                            <div class="text-[11px] text-slate-500">Monitoreo global en vivo, edición y exportación a Excel</div>
+                    <button type="button" onclick="requestDashboardAccess()" class="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-amber-500 hover:bg-amber-500/10 text-left transition cursor-pointer">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-500 flex items-center justify-center font-bold text-xs"><i class="fa-solid fa-chart-pie"></i></span>
+                            <div>
+                                <div class="font-bold text-sm text-slate-900 dark:text-white">Tablero General (Coordinador)</div>
+                                <div class="text-[11px] text-slate-500">Monitoreo global en vivo, edición y exportación a Excel</div>
+                            </div>
                         </div>
+                        <span class="px-2 py-1 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-500 border border-amber-500/30 shrink-0">
+                            <i class="fa-solid fa-lock mr-1"></i>PIN
+                        </span>
                     </button>
                 </div>
             </div>
@@ -691,11 +776,11 @@
                     </button>
                 </div>
                 <p class="text-xs text-slate-500 dark:text-slate-400">
-                    Opcional: Ingresa una API Key de Google AI Studio para redacción generativa en la nube. Si se deja vacía, <strong>PromoHealth</strong> empleará automáticamente su Motor Clínico Experto local sin requerir internet.
+                    Opcional: Ingresa tu clave de Google Gemini (acepta formato <code>AIzaSy...</code> o token <code>AQ.Ab...</code>). Si se deja vacía o el token expira, <strong>PromoHealth</strong> empleará automáticamente su Motor Clínico Experto local sin interrupciones.
                 </p>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Gemini API Key</label>
-                    <input type="password" id="input-gemini-key" placeholder="AIzaSy..." class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Gemini API Key / Token</label>
+                    <input type="password" id="input-gemini-key" placeholder="AIzaSy... o AQ.Ab..." class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" onclick="closeGeminiKeyModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer">Cancelar</button>
@@ -715,6 +800,9 @@
                         <span class="truncate">Vista Previa del Carnet</span>
                     </h3>
                     <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                        <button type="button" onclick="openWhatsAppModal()" class="px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold bg-[#25D366] hover:bg-[#1ebe57] text-white cursor-pointer">
+                            <i class="fa-brands fa-whatsapp sm:mr-1"></i><span class="hidden sm:inline">WhatsApp</span>
+                        </button>
                         <button type="button" onclick="triggerPrintCarnet()" class="px-3 sm:px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer">
                             <i class="fa-solid fa-print mr-1"></i> Imprimir
                         </button>
@@ -730,14 +818,14 @@
         </div>
 
         <!-- ================================================================= -->
-        <!-- MODAL 4: EDITAR DATOS DEL DOCENTE (EXCLUSIVO DASHBOARD)           -->
+        <!-- MODAL 4: EDITAR DATOS DEL PARTICIPANTE (EXCLUSIVO DASHBOARD)      -->
         <!-- ================================================================= -->
         <div id="modal-edit-patient" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-xl w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
                 <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                     <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <i class="fa-solid fa-user-pen text-blue-500"></i>
-                        Editar Registro del Docente
+                        Editar Registro del Participante
                     </h3>
                     <button type="button" onclick="closeEditPatientModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">
                         <i class="fa-solid fa-xmark text-lg"></i>
@@ -749,7 +837,7 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Documento / Cédula *</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Documento (C.C. / T.I.) *</label>
                             <input type="text" id="edit-doc" inputmode="numeric" required class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <div>
@@ -761,7 +849,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Edad (Años) *</label>
-                            <input type="number" id="edit-age" inputmode="numeric" min="18" max="95" required class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            <input type="number" id="edit-age" inputmode="numeric" min="5" max="99" required class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Sexo Biológico *</label>
@@ -771,18 +859,26 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Área / Asignatura</label>
-                            <input type="text" id="edit-area" class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Estamento / Rol *</label>
+                            <select id="edit-area" required class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="Docente">Docente</option>
+                                <option value="Estudiante">Estudiante</option>
+                                <option value="Directivo / Coordinador">Directivo / Coordinador</option>
+                                <option value="Administrativo">Administrativo</option>
+                                <option value="Servicios Generales">Servicios Generales</option>
+                                <option value="Padre / Madre de Familia">Padre / Madre de Familia</option>
+                                <option value="Visitante / Invitado">Visitante / Invitado</option>
+                            </select>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Tabaquismo</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Tabaquismo / Vapeo</label>
                             <select id="edit-smoking" class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
                                 <option value="No fuma">No fuma</option>
                                 <option value="Exfumador">Exfumador</option>
-                                <option value="Fumador activo">Fumador activo</option>
+                                <option value="Fumador activo">Fumador / Vapeador activo</option>
                             </select>
                         </div>
                         <div>
@@ -828,7 +924,7 @@
                         <i class="fa-solid fa-triangle-exclamation"></i>
                     </div>
                     <div>
-                        <h3 class="text-base font-bold text-slate-900 dark:text-white">¿Eliminar registro del docente?</h3>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white">¿Eliminar registro del participante?</h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400">Esta acción borrará sus datos de Supabase de forma permanente.</p>
                     </div>
                 </div>
@@ -850,6 +946,130 @@
             </div>
         </div>
 
+        <!-- ================================================================= -->
+        <!-- MODAL 6: ENVIAR CARNET POR WHATSAPP                               -->
+        <!-- ================================================================= -->
+        <div id="modal-whatsapp" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-brands fa-whatsapp text-xl text-[#25D366]"></i>
+                        Enviar Carnet por WhatsApp
+                    </h3>
+                    <button type="button" onclick="closeWhatsAppModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs">
+                    <div class="font-bold text-slate-900 dark:text-white" id="wa-patient-name">--</div>
+                    <div class="text-slate-500 dark:text-slate-400" id="wa-patient-meta">--</div>
+                </div>
+
+                <form onsubmit="sendWhatsAppReport(event)" class="space-y-4">
+                    <div>
+                        <label for="wa-phone-input" class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+                            Número de Celular del Participante *
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <span class="px-3.5 py-2.5 rounded-xl text-sm font-bold bg-slate-100 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 select-none">
+                                🇨🇴 +57
+                            </span>
+                            <input type="tel" id="wa-phone-input" inputmode="numeric" required placeholder="Ej. 3001234567" class="flex-1 px-4 py-2.5 rounded-xl text-base font-bold bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-[#25D366] outline-none">
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">
+                            No necesitas agregar el número a tus contactos. Se abrirá WhatsApp con el informe clínico completo listo para enviar.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2.5 pt-2">
+                        <button type="button" onclick="closeWhatsAppModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-[#25D366] hover:bg-[#1ebe57] text-white shadow-md shadow-emerald-600/25 cursor-pointer">
+                            <i class="fa-brands fa-whatsapp text-sm"></i>
+                            Abrir WhatsApp y Enviar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- MODAL 7: PIN DE SEGURIDAD PARA EL ROL COORDINADOR                 -->
+        <!-- ================================================================= -->
+        <div id="modal-pin" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-amber-500"></i>
+                        Acceso de Coordinador
+                    </h3>
+                    <button type="button" onclick="closePinModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                    Ingresa el PIN de seguridad para abrir el <strong>Tablero General</strong> (edición, depuración y exportación).
+                </p>
+
+                <form onsubmit="submitPinVerification(event)" class="space-y-4">
+                    <div>
+                        <input type="password" id="coordinator-pin-input" inputmode="numeric" maxlength="8" required placeholder="••••" class="w-full px-4 py-3 rounded-xl text-center text-2xl font-extrabold tracking-[0.5em] bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none">
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2 pt-1">
+                        <button type="button" onclick="closePinModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-500/20 cursor-pointer">
+                            <i class="fa-solid fa-unlock-keyhole"></i>
+                            Desbloquear Tablero
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- MODAL 8: CAMBIAR PIN DEL COORDINADOR                              -->
+        <!-- ================================================================= -->
+        <div id="modal-change-pin" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-key text-amber-500"></i>
+                        Cambiar PIN del Coordinador
+                    </h3>
+                    <button type="button" onclick="closeChangePinModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <form onsubmit="submitChangePin(event)" class="space-y-3.5">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">PIN Actual *</label>
+                        <input type="password" id="current-pin-input" inputmode="numeric" maxlength="8" required placeholder="PIN actual" class="w-full px-3.5 py-2.5 rounded-xl text-center text-lg font-bold tracking-widest bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Nuevo PIN (4 a 8 dígitos) *</label>
+                        <input type="password" id="new-pin-input" inputmode="numeric" minlength="4" maxlength="8" required placeholder="Ej. 2026" class="w-full px-3.5 py-2.5 rounded-xl text-center text-lg font-bold tracking-widest bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none">
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2 pt-2">
+                        <button type="button" onclick="closeChangePinModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md cursor-pointer">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            Guardar PIN
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- NOTIFICACIÓN FLOTANTE (TOAST) -->
         <div id="toast-container" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-5 z-50 flex flex-col items-center sm:items-end gap-2 pointer-events-none"></div>
     </div>
@@ -868,7 +1088,7 @@
                     </div>
                     <div>
                         <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Promo<span class="text-emerald-600">Health</span></h1>
-                        <p class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Feria Centros de Interés • Guardianes de la Vida</p>
+                        <p class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Feria Centros de Interés • Guardianes de Vida</p>
                     </div>
                 </div>
                 <div class="text-right text-xs text-slate-600">
@@ -877,11 +1097,11 @@
                 </div>
             </div>
 
-            <!-- Datos del Docente -->
+            <!-- Datos del Participante -->
             <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-5">
                 <div class="grid grid-cols-3 gap-3 text-xs">
                     <div>
-                        <span class="text-slate-500 font-semibold block">DOCENTE EVALUADO:</span>
+                        <span class="text-slate-500 font-semibold block">PARTICIPANTE EVALUADO:</span>
                         <span id="print-doc-name" class="text-sm font-bold text-slate-900">--</span>
                     </div>
                     <div>
@@ -889,7 +1109,7 @@
                         <span id="print-doc-id" class="text-sm font-bold text-slate-900">--</span>
                     </div>
                     <div>
-                        <span class="text-slate-500 font-semibold block">EDAD / SEXO / ÁREA:</span>
+                        <span class="text-slate-500 font-semibold block">EDAD / SEXO / ROL:</span>
                         <span id="print-doc-meta" class="text-sm font-bold text-slate-900">--</span>
                     </div>
                 </div>
@@ -941,13 +1161,13 @@
                     <div class="text-[10px]">Responsables de Tamizaje</div>
                 </div>
                 <div>
-                    <div class="border-t border-slate-400 w-3/4 mx-auto pt-1.5 font-semibold">Firma del Docente Participante</div>
+                    <div class="border-t border-slate-400 w-3/4 mx-auto pt-1.5 font-semibold">Firma del Participante</div>
                     <div class="text-[10px]">Recibido a Conformidad</div>
                 </div>
             </div>
 
             <div class="mt-6 pt-3 border-t border-slate-200 text-[10px] text-slate-500 flex justify-between items-center">
-                <span>Nota: Este tamizaje escolar es preventivo y educativo; solo es para evaluar competencias específicas y no es un diagnóstico medico.</span>
+                <span>Nota: Este tamizaje escolar es educativo; es netamente pedagógico y no es una impresión diagnostica verdadera.</span>
                 <span class="font-bold text-slate-700">PromoHealth • @resma</span>
             </div>
         </div>
@@ -968,8 +1188,18 @@
         let patients = [];
         let selectedDoc = null;
         let pendingDeleteDoc = null;
+        let isSavingRecord = false;
         let currentStation = 'stand-1';
         let geminiApiKey = localStorage.getItem('promohealth_gemini_key') || '';
+        const DEFAULT_COORDINATOR_PIN = '2026';
+        let coordinatorPin = localStorage.getItem('promohealth_coord_pin') || DEFAULT_COORDINATOR_PIN;
+        let isCoordinatorUnlocked = sessionStorage.getItem('promohealth_coord_unlocked') === 'true';
+
+        // Instancias y firma de caché para los gráficos de Chart.js
+        let chartIMCInstance = null;
+        let chartBPInstance = null;
+        let chartRolesInstance = null;
+        let lastChartsSignature = '';
 
         const STATION_NAMES = {
             'stand-1': 'Stand 1: Admisión',
@@ -985,7 +1215,10 @@
         // --- 3. CICLO DE INICIALIZACIÓN ---
         window.addEventListener('DOMContentLoaded', () => {
             initTheme();
-            const savedStation = localStorage.getItem('feria_station_role') || 'stand-1';
+            let savedStation = localStorage.getItem('feria_station_role') || 'stand-1';
+            if (savedStation === 'dashboard' && !isCoordinatorUnlocked) {
+                savedStation = 'stand-1';
+            }
             setStation(savedStation, false);
             initSupabaseClient();
             updateAIEnginePill();
@@ -999,6 +1232,9 @@
                     closePreviewModal();
                     closeEditPatientModal();
                     closeDeletePatientModal();
+                    closeWhatsAppModal();
+                    closePinModal();
+                    closeChangePinModal();
                 }
             });
         });
@@ -1057,6 +1293,7 @@
             localStorage.setItem('promohealth_theme', isDark ? 'dark' : 'light');
             const icon = document.getElementById('theme-icon');
             if (icon) icon.className = isDark ? 'fa-solid fa-sun text-sm' : 'fa-solid fa-moon text-sm';
+            if (currentStation === 'dashboard') renderDashboardCharts(true);
         }
 
         // --- 5. CONEXIÓN SUPABASE Y TIEMPO REAL ---
@@ -1177,7 +1414,7 @@
                 updateUIState();
                 if (showLoader) showToast('Datos sincronizados con la nube', 'success');
             } catch (err) {
-                console.error("Error cargando pacientes:", err);
+                console.error("Error cargando participantes:", err);
                 updateConnectionStatusBadge('Sin conexión', false);
                 if (showLoader) showToast(err.message || 'Error al sincronizar', 'error');
             } finally {
@@ -1197,7 +1434,7 @@
             }
         }
 
-        // --- 6. NAVEGACIÓN ENTRE ESTACIONES ---
+        // --- 6. NAVEGACIÓN ENTRE ESTACIONES Y PIN DE SEGURIDAD ---
         function openStationModal() {
             document.getElementById('modal-station')?.classList.remove('hidden');
         }
@@ -1206,7 +1443,86 @@
             document.getElementById('modal-station')?.classList.add('hidden');
         }
 
+        function requestDashboardAccess() {
+            closeStationModal();
+            if (isCoordinatorUnlocked) {
+                setStation('dashboard');
+            } else {
+                const pinInput = document.getElementById('coordinator-pin-input');
+                if (pinInput) {
+                    pinInput.value = '';
+                    setTimeout(() => pinInput.focus(), 100);
+                }
+                document.getElementById('modal-pin')?.classList.remove('hidden');
+            }
+        }
+
+        function closePinModal() {
+            document.getElementById('modal-pin')?.classList.add('hidden');
+        }
+
+        function submitPinVerification(e) {
+            e.preventDefault();
+            const entered = (document.getElementById('coordinator-pin-input')?.value || '').trim();
+            if (entered === coordinatorPin) {
+                isCoordinatorUnlocked = true;
+                sessionStorage.setItem('promohealth_coord_unlocked', 'true');
+                closePinModal();
+                setStation('dashboard');
+                showToast('Acceso de Coordinador desbloqueado', 'success');
+            } else {
+                showToast('PIN incorrecto. Acceso restringido al Coordinador.', 'error');
+                const pinInput = document.getElementById('coordinator-pin-input');
+                if (pinInput) {
+                    pinInput.value = '';
+                    pinInput.focus();
+                }
+            }
+        }
+
+        function lockCoordinatorSession() {
+            isCoordinatorUnlocked = false;
+            sessionStorage.removeItem('promohealth_coord_unlocked');
+            setStation('stand-1');
+            showToast('Sesión de Coordinador bloqueada por seguridad', 'info');
+        }
+
+        function openChangePinModal() {
+            const currInput = document.getElementById('current-pin-input');
+            const newInput = document.getElementById('new-pin-input');
+            if (currInput) currInput.value = '';
+            if (newInput) newInput.value = '';
+            document.getElementById('modal-change-pin')?.classList.remove('hidden');
+            setTimeout(() => currInput?.focus(), 100);
+        }
+
+        function closeChangePinModal() {
+            document.getElementById('modal-change-pin')?.classList.add('hidden');
+        }
+
+        function submitChangePin(e) {
+            e.preventDefault();
+            const currVal = (document.getElementById('current-pin-input')?.value || '').trim();
+            const newVal = (document.getElementById('new-pin-input')?.value || '').trim();
+
+            if (currVal !== coordinatorPin) {
+                return showToast('El PIN actual ingresado no es correcto', 'error');
+            }
+            if (newVal.length < 4) {
+                return showToast('El nuevo PIN debe tener al menos 4 dígitos', 'error');
+            }
+
+            coordinatorPin = newVal;
+            localStorage.setItem('promohealth_coord_pin', newVal);
+            closeChangePinModal();
+            showToast('PIN del Coordinador actualizado correctamente', 'success');
+        }
+
         function setStation(stationKey, save = true) {
+            if (stationKey === 'dashboard' && !isCoordinatorUnlocked) {
+                requestDashboardAccess();
+                return;
+            }
             currentStation = stationKey;
             if (save) localStorage.setItem('feria_station_role', stationKey);
 
@@ -1229,10 +1545,13 @@
             closeStationModal();
             resetFormDirtyFlags();
             populateCurrentPatientForms(true);
-            if (stationKey === 'dashboard') renderDashboardMetrics();
+            if (stationKey === 'dashboard') {
+                lastChartsSignature = '';
+                renderDashboardMetrics();
+            }
         }
 
-        // --- 7. GESTIÓN DE PACIENTE ACTIVO Y FORMULARIOS ---
+        // --- 7. GESTIÓN DE PARTICIPANTE ACTIVO Y FORMULARIOS ---
         function updateUIState() {
             const countBadge = document.getElementById('registered-count-badge');
             if (countBadge) countBadge.textContent = `${patients.length} inscritos`;
@@ -1253,15 +1572,17 @@
 
             const filtered = patients.filter(p =>
                 (p.nombre_docente || '').toLowerCase().includes(term) ||
-                (p.documento || '').toLowerCase().includes(term)
+                (p.documento || '').toLowerCase().includes(term) ||
+                (p.area || '').toLowerCase().includes(term)
             );
 
-            select.innerHTML = `<option value="">-- Selecciona el Docente en este Stand (${filtered.length}) --</option>`;
+            select.innerHTML = `<option value="">-- Selecciona el Participante en este Stand (${filtered.length}) --</option>`;
             filtered.forEach(p => {
                 const done = countCompletedStands(p);
+                const roleLabel = p.area ? ` [${p.area}]` : '';
                 const opt = document.createElement('option');
                 opt.value = p.documento;
-                opt.textContent = `${p.documento} • ${p.nombre_docente} (${done}/5)`;
+                opt.textContent = `${p.documento} • ${p.nombre_docente}${roleLabel} (${done}/5)`;
                 if (p.documento === currentVal) opt.selected = true;
                 select.appendChild(opt);
             });
@@ -1341,7 +1662,7 @@
 
             ribbon.classList.remove('hidden');
             document.getElementById('ribbon-name').textContent = selectedDoc.nombre_docente;
-            document.getElementById('ribbon-meta').textContent = `C.C. ${selectedDoc.documento} • ${selectedDoc.edad} años • ${selectedDoc.sexo} ${selectedDoc.area ? '• ' + selectedDoc.area : ''}`;
+            document.getElementById('ribbon-meta').textContent = `Doc. ${selectedDoc.documento} • ${selectedDoc.edad} años • ${selectedDoc.sexo} ${selectedDoc.area ? '• ' + selectedDoc.area : ''}`;
             const completed = countCompletedStands(selectedDoc);
             document.getElementById('ribbon-progress').textContent = `${completed}/5 Exámenes`;
         }
@@ -1350,9 +1671,9 @@
             if (!p) return 0;
             let count = 0;
             if (hasVal(p.temperatura)) count++;
-            if (hasVal(p.oximetria)) count++;
+            if (hasVal(p.oximetria) && hasVal(p.frecuencia_cardiaca)) count++;
             if (hasVal(p.imc)) count++;
-            if (hasVal(p.presion_sistolica)) count++;
+            if (hasVal(p.presion_sistolica) && hasVal(p.presion_diastolica)) count++;
             if (hasVal(p.glucometria)) count++;
             return count;
         }
@@ -1453,7 +1774,7 @@
                     nombre_docente: name,
                     edad: age,
                     sexo: gender,
-                    area: area || null,
+                    area: area || 'Participante',
                     tabaquismo: smoking,
                     actividad_fisica: activity,
                     antecedente_previo: history
@@ -1475,9 +1796,9 @@
 
                 document.getElementById('form-stand-1').reset();
                 updateUIState();
-                showToast(`Docente ${name} inscrito correctamente`, 'success');
+                showToast(`Participante ${name} inscrito correctamente`, 'success');
             } catch (err) {
-                showToast(err.message || 'Error al registrar docente', 'error');
+                showToast(err.message || 'Error al registrar participante', 'error');
             } finally {
                 if (btn) btn.disabled = false;
             }
@@ -1485,12 +1806,14 @@
 
         async function updatePatientRecord(fields, successMessage) {
             if (!selectedDoc) {
-                return showToast('Primero selecciona un docente en el desplegable superior', 'error');
+                return showToast('Primero selecciona un participante en el desplegable superior', 'error');
             }
             if (!supabaseClient) {
                 return showToast('Sin conexión con Supabase', 'error');
             }
+            if (isSavingRecord) return;
 
+            isSavingRecord = true;
             try {
                 const { data, error } = await supabaseClient
                     .from('feria_pacientes')
@@ -1511,6 +1834,8 @@
                 updateUIState();
             } catch (err) {
                 showToast(err.message || 'Error al actualizar en Supabase', 'error');
+            } finally {
+                isSavingRecord = false;
             }
         }
 
@@ -1744,6 +2069,11 @@
             if (!grid) return;
 
             const p = selectedDoc || {};
+            const s3Done = hasVal(p.oximetria) && hasVal(p.frecuencia_cardiaca);
+            const s3Sub = s3Done
+                ? `${p.estado_oxigeno || ''} • ${p.estado_pulso || ''}`
+                : (p.estado_oxigeno || 'Sin toma');
+
             const items = [
                 {
                     title: 'Stand 2: Temp',
@@ -1753,9 +2083,9 @@
                 },
                 {
                     title: 'Stand 3: SpO2',
-                    done: hasVal(p.oximetria),
+                    done: s3Done,
                     val: hasVal(p.oximetria) ? `${escapeHTML(p.oximetria)}% • ${escapeHTML(p.frecuencia_cardiaca ?? '--')} LPM` : 'Pendiente',
-                    sub: escapeHTML(p.estado_oxigeno || 'Sin toma')
+                    sub: escapeHTML(s3Sub)
                 },
                 {
                     title: 'Stand 4: IMC',
@@ -1765,8 +2095,8 @@
                 },
                 {
                     title: 'Stand 5: Tensión',
-                    done: hasVal(p.presion_sistolica),
-                    val: hasVal(p.presion_sistolica) ? `${escapeHTML(p.presion_sistolica)}/${escapeHTML(p.presion_diastolica)}` : 'Pendiente',
+                    done: hasVal(p.presion_sistolica) && hasVal(p.presion_diastolica),
+                    val: (hasVal(p.presion_sistolica) && hasVal(p.presion_diastolica)) ? `${escapeHTML(p.presion_sistolica)}/${escapeHTML(p.presion_diastolica)}` : 'Pendiente',
                     sub: escapeHTML(p.estado_presion || 'Sin toma')
                 },
                 {
@@ -1822,7 +2152,7 @@
 
         async function generateAIDiagnosis() {
             if (!selectedDoc) {
-                return showToast('Selecciona primero a un docente en el desplegable', 'error');
+                return showToast('Selecciona primero a un participante en el desplegable', 'error');
             }
 
             const btn = document.getElementById('btn-generate-ai');
@@ -1863,31 +2193,80 @@
             }
         }
 
+        // Limpiador de formato Markdown para garantizar texto plano limpio en el textarea y en el PDF
+        function cleanPlainText(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/\*\*(.*?)\*\*/g, '$1')   // Quitar negritas **texto**
+                .replace(/__(.*?)__/g, '$1')       // Quitar negritas __texto__
+                .replace(/\*(.*?)\*/g, '$1')       // Quitar cursivas *texto*
+                .replace(/^#{1,6}\s+/gm, '')       // Quitar encabezados #
+                .replace(/^\s*[\*\-]\s+/gm, '• ')  // Convertir viñetas * o - en punto limpio •
+                .replace(/`+/g, '')                // Quitar acentos graves de código
+                .replace(/\n{3,}/g, '\n\n')        // Evitar saltos de línea excesivos
+                .trim();
+        }
+
         async function callGeminiAPI(p, apiKey) {
-            const prompt = `Actúa como médico experto en medicina preventiva y salud ocupacional docente en Colombia. Analiza estos resultados de tamizaje de un docente escolar y redacta una impresión diagnóstica breve (máximo 110 palabras), empática y con recomendaciones prácticas:
-- Docente: ${p.nombre_docente}, ${p.edad} años, ${p.sexo}.
-- Hábitos/Antecedentes: Tabaquismo: ${p.tabaquismo || 'No reportado'}, Actividad física: ${p.actividad_fisica || 'No reportada'}, Antecedentes: ${p.antecedente_previo || 'Ninguno'}.
+            const cleanKey = (apiKey || '').trim();
+            const isOAuthToken = cleanKey.startsWith('AQ.') || cleanKey.startsWith('ya29.');
+
+            const bpText = (hasVal(p.presion_sistolica) && hasVal(p.presion_diastolica))
+                ? `${p.presion_sistolica}/${p.presion_diastolica} mmHg`
+                : 'No tomada';
+
+            const roleText = p.area || 'Participante de la comunidad educativa';
+
+            const prompt = `Actúa como médico experto en medicina preventiva y salud escolar en Colombia. Analiza estos resultados de tamizaje de un participante de la feria de la salud (${roleText}) y redacta una impresión diagnóstica breve (máximo 110 palabras), empática y con recomendaciones prácticas adaptadas a su edad (${p.edad} años) y a su rol (${roleText}).
+REGLA DE FORMATO ESTRICTA: Escribe ÚNICAMENTE en texto plano continuo. NO uses formato Markdown, NO uses asteriscos (**), NO uses numerales (#) ni guiones de lista.
+Datos del participante:
+- Nombre: ${p.nombre_docente}, ${p.edad} años, ${p.sexo}, Rol/Estamento: ${roleText}.
+- Hábitos/Antecedentes: Tabaquismo/Vapeo: ${p.tabaquismo || 'No reportado'}, Actividad física: ${p.actividad_fisica || 'No reportada'}, Antecedentes: ${p.antecedente_previo || 'Ninguno'}.
 - Temperatura: ${p.temperatura ?? 'No tomada'} °C (${p.estado_temperatura || ''}).
 - Oximetría/Pulso: ${p.oximetria ?? 'No tomada'}% SpO2, ${p.frecuencia_cardiaca ?? 'No tomado'} LPM (${p.estado_oxigeno || ''}, ${p.estado_pulso || ''}).
 - Antropometría: IMC ${p.imc ?? 'No tomado'} kg/m² (${p.estado_imc || ''}).
-- Presión Arterial: ${p.presion_sistolica ? p.presion_sistolica + '/' + p.presion_diastolica + ' mmHg' : 'No tomada'} (${p.estado_presion || ''}).
+- Presión Arterial: ${bpText} (${p.estado_presion || ''}).
 - Glucometría (${p.tipo_toma || 'ayunas'}): ${p.glucometria ?? 'No tomada'} mg/dL (${p.estado_glucometria || ''}).
-Indica si requiere control regular o valoración prioritaria en su EPS.`;
+Indica al final si requiere control regular o valoración prioritaria en su EPS.`;
 
             const models = ['gemini-2.0-flash', 'gemini-1.5-flash'];
             for (const model of models) {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (text) return text.trim();
+                try {
+                    const resKey = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(cleanKey)}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    });
+                    if (resKey.ok) {
+                        const dataKey = await resKey.json();
+                        const textKey = dataKey?.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (textKey) return cleanPlainText(textKey);
+                    }
+                } catch (errA) {
+                    console.warn(`Intento con parámetro key en ${model} no disponible:`, errA.message);
+                }
+
+                if (isOAuthToken) {
+                    try {
+                        const resBearer = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${cleanKey}`
+                            },
+                            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                        });
+                        if (resBearer.ok) {
+                            const dataBearer = await resBearer.json();
+                            const textBearer = dataBearer?.candidates?.[0]?.content?.parts?.[0]?.text;
+                            if (textBearer) return cleanPlainText(textBearer);
+                        }
+                    } catch (errB) {
+                        console.warn(`Intento con Bearer en ${model} no disponible:`, errB.message);
+                    }
                 }
             }
-            throw new Error('No se pudo conectar con los modelos Gemini');
+            throw new Error('No se pudo autenticar o conectar con Gemini API');
         }
 
         function buildClinicalExpertImpression(p) {
@@ -1923,43 +2302,155 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
                 }
             }
             if (hasVal(p.glucometria)) {
+                const glucType = p.tipo_toma || 'ayunas';
                 if (p.glucometria < 70) { findings.push(`hipoglucemia (${p.glucometria} mg/dL)`); urgent = true; }
-                else if ((p.tipo_toma === 'ayunas' && p.glucometria >= 100) || (p.tipo_toma === 'postprandial' && p.glucometria >= 140)) {
+                else if ((glucType === 'ayunas' && p.glucometria >= 100) || (glucType === 'postprandial' && p.glucometria >= 140)) {
                     findings.push(`glicemia alterada (${p.glucometria} mg/dL)`);
                 }
             }
 
-            let summary = `IMPRESIÓN PREVENTIVA: Docente de ${p.edad} años `;
+            const roleLabel = p.area || 'Participante';
+            let summary = `IMPRESIÓN PREVENTIVA: ${roleLabel} de ${p.edad} años `;
             if (findings.length === 0) {
                 summary += `con parámetros hemodinámicos, respiratorios y metabólicos dentro de rangos fisiológicos esperados al momento del tamizaje. `;
             } else {
                 summary += `en quien se identifica: ${findings.join(', ')}. `;
             }
 
-            if (p.tabaquismo === 'Fumador activo') {
-                summary += `Se enfatiza consejería para cesación tabáquica por riesgo cardiovascular. `;
+            if (p.tabaquismo && p.tabaquismo.toLowerCase().includes('fumador') && !p.tabaquismo.toLowerCase().includes('exfumador')) {
+                summary += `Se enfatiza consejería para suspender tabaco/vapeo por riesgo cardiorrespiratorio. `;
             }
             if (p.actividad_fisica && p.actividad_fisica.includes('Sedentario')) {
-                summary += `Se sugiere incorporar pausas activas docentes y al menos 150 min/semana de actividad aeróbica. `;
+                summary += `Se sugiere incorporar pausas activas y al menos 150 min/semana de actividad física aeróbica. `;
             }
 
             summary += urgent
                 ? `CONDUCTA: Se recomienda valoración médica prioritaria en su EPS el día de hoy para confirmación diagnóstica.`
-                : `CONDUCTA: Mantener hidratación constante durante la jornada académica, higiene vocal, alimentación balanceada y control médico preventivo periódico en su EPS.`;
+                : `CONDUCTA: Mantener hidratación constante durante la jornada, alimentación balanceada, descanso adecuado y control médico preventivo periódico en su EPS.`;
 
             return summary;
         }
 
         async function saveStand7Notes() {
-            if (!selectedDoc) return showToast('Selecciona primero un docente', 'error');
-            const notes = document.getElementById('s7-notes').value.trim();
+            if (!selectedDoc) return showToast('Selecciona primero un participante', 'error');
+            const notes = cleanPlainText(document.getElementById('s7-notes').value);
+            document.getElementById('s7-notes').value = notes;
             await updatePatientRecord({
                 observaciones_finales: notes,
                 completado: true
             }, 'Observaciones y cierre guardados en la nube');
         }
 
-        // --- 11. IMPRESIÓN Y VISTA PREVIA DEL CARNET ---
+        // --- 11. ENVÍO DE CARNET POR WHATSAPP ---
+        function openWhatsAppModal(docFromDashboard = null) {
+            if (docFromDashboard) {
+                selectedDoc = patients.find(p => p.documento === docFromDashboard) || null;
+            }
+            if (!selectedDoc) {
+                return showToast('Selecciona primero a un participante', 'error');
+            }
+
+            document.getElementById('wa-patient-name').textContent = selectedDoc.nombre_docente || '--';
+            document.getElementById('wa-patient-meta').textContent = `Doc. ${selectedDoc.documento} • ${selectedDoc.edad} años • ${selectedDoc.area || 'Participante'}`;
+            const phoneInput = document.getElementById('wa-phone-input');
+            if (phoneInput) {
+                phoneInput.value = '';
+                setTimeout(() => phoneInput.focus(), 100);
+            }
+            document.getElementById('modal-whatsapp')?.classList.remove('hidden');
+        }
+
+        function closeWhatsAppModal() {
+            document.getElementById('modal-whatsapp')?.classList.add('hidden');
+        }
+
+        function buildWhatsAppMessage(p) {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('es-CO');
+            const liveNotes = currentStation === 'stand-7' ? document.getElementById('s7-notes')?.value.trim() : '';
+            const finalNotes = cleanPlainText(liveNotes || p.observaciones_finales || buildClinicalExpertImpression(p));
+
+            const tempStr = hasVal(p.temperatura) ? `${p.temperatura} °C (${p.estado_temperatura || 'Normal'})` : 'Pendiente';
+            const oxiStr = hasVal(p.oximetria) ? `${p.oximetria}% SpO2 (${p.estado_oxigeno || 'Normal'})` : 'Pendiente';
+            const pulseStr = hasVal(p.frecuencia_cardiaca) ? `${p.frecuencia_cardiaca} LPM (${p.estado_pulso || 'Normal'})` : 'Pendiente';
+            const imcStr = hasVal(p.imc) ? `${p.imc} kg/m² (${p.peso}kg / ${p.altura}cm) - ${p.estado_imc || ''}` : 'Pendiente';
+            const bpStr = (hasVal(p.presion_sistolica) && hasVal(p.presion_diastolica))
+                ? `${p.presion_sistolica}/${p.presion_diastolica} mmHg (${p.estado_presion || ''})`
+                : 'Pendiente';
+            const glucStr = hasVal(p.glucometria)
+                ? `${p.glucometria} mg/dL [${p.tipo_toma || 'ayunas'}] (${p.estado_glucometria || ''})`
+                : 'Pendiente';
+
+            return [
+                `🏥 *PROMOHEALTH • CARNET DE TAMIZAJE ESCOLAR*`,
+                `📅 *Fecha:* ${dateStr}`,
+                ``,
+                `👤 *Participante:* ${p.nombre_docente}`,
+                `🪪 *Documento:* ${p.documento}`,
+                `🎓 *Rol / Estamento:* ${p.area || 'Participante'} (${p.edad} años • ${p.sexo})`,
+                ``,
+                `📊 *RESULTADOS DEL CIRCUITO CLÍNICO:*`,
+                `🌡️ *Temperatura:* ${tempStr}`,
+                `🫁 *Oximetría:* ${oxiStr}`,
+                `💓 *Pulso:* ${pulseStr}`,
+                `⚖️ *Antropometría (IMC):* ${imcStr}`,
+                `🩺 *Presión Arterial:* ${bpStr}`,
+                `🩸 *Glucometría:* ${glucStr}`,
+                ``,
+                `📋 *IMPRESIÓN DIAGNÓSTICA Y RECOMENDACIONES:*`,
+                `${finalNotes}`,
+                ``,
+                `_Nota: Este tamizaje escolar es preventivo y educativo; no reemplaza una consulta médica formal._`,
+                `*PromoHealth • @resma*`
+            ].join('\n');
+        }
+
+        async function sendWhatsAppReport(e) {
+            e.preventDefault();
+            if (!selectedDoc) return showToast('Selecciona primero a un participante', 'error');
+
+            const rawPhone = document.getElementById('wa-phone-input')?.value || '';
+            let cleanDigits = rawPhone.replace(/\D/g, '').replace(/^0+/, '');
+
+            if (cleanDigits.length < 10) {
+                return showToast('Ingresa un número de celular válido (10 dígitos)', 'error');
+            }
+
+            if (cleanDigits.length === 10) {
+                cleanDigits = '57' + cleanDigits;
+            }
+
+            // Sincronizar o autogenerar observaciones antes de enviar por WhatsApp
+            const notesInput = document.getElementById('s7-notes');
+            let liveNotes = currentStation === 'stand-7' ? cleanPlainText(notesInput?.value) : '';
+            if (!liveNotes && !selectedDoc.observaciones_finales) {
+                liveNotes = buildClinicalExpertImpression(selectedDoc);
+                if (currentStation === 'stand-7' && notesInput) notesInput.value = liveNotes;
+            }
+
+            if (liveNotes && liveNotes !== selectedDoc.observaciones_finales) {
+                selectedDoc.observaciones_finales = liveNotes;
+                if (supabaseClient) {
+                    try {
+                        await supabaseClient.from('feria_pacientes')
+                            .update({ observaciones_finales: liveNotes, completado: true })
+                            .eq('documento', selectedDoc.documento);
+                        resetFormDirtyFlags();
+                    } catch (errSync) {
+                        console.warn('No se pudo sincronizar nota antes de enviar WhatsApp:', errSync);
+                    }
+                }
+            }
+
+            const message = buildWhatsAppMessage(selectedDoc);
+            const waUrl = `https://wa.me/${cleanDigits}?text=${encodeURIComponent(message)}`;
+
+            closeWhatsAppModal();
+            window.open(waUrl, '_blank', 'noopener,noreferrer');
+            showToast('Abriendo WhatsApp con el carnet del participante...', 'success');
+        }
+
+        // --- 12. IMPRESIÓN Y VISTA PREVIA DEL CARNET ---
         function populatePrintableReport() {
             if (!selectedDoc) return;
             const p = selectedDoc;
@@ -2000,7 +2491,7 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
                 </tr>
                 <tr>
                     <td class="border border-slate-300 py-2 px-3 font-semibold">Stand 5 • Presión Arterial</td>
-                    <td class="border border-slate-300 py-2 px-3 text-center font-bold">${hasVal(p.presion_sistolica) ? `${escapeHTML(p.presion_sistolica)}/${escapeHTML(p.presion_diastolica)} mmHg` : 'Pendiente'}</td>
+                    <td class="border border-slate-300 py-2 px-3 text-center font-bold">${(hasVal(p.presion_sistolica) && hasVal(p.presion_diastolica)) ? `${escapeHTML(p.presion_sistolica)}/${escapeHTML(p.presion_diastolica)} mmHg` : 'Pendiente'}</td>
                     <td class="border border-slate-300 py-2 px-3 text-center">&lt; 120/80 mmHg</td>
                     <td class="border border-slate-300 py-2 px-3">${escapeHTML(p.estado_presion || 'Sin registro')}</td>
                 </tr>
@@ -2012,14 +2503,13 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
                 </tr>
             `;
 
-            // Solo usar el texto en vivo de #s7-notes si el usuario está situado en el Stand 7
             const liveNotes = currentStation === 'stand-7' ? document.getElementById('s7-notes')?.value.trim() : '';
-            const finalNotes = liveNotes || p.observaciones_finales || 'Sin observaciones registradas.';
+            const finalNotes = cleanPlainText(liveNotes || p.observaciones_finales || 'Sin observaciones registradas.');
             document.getElementById('print-notes').textContent = finalNotes;
         }
 
         function previewCarnetModal() {
-            if (!selectedDoc) return showToast('Selecciona primero a un docente', 'error');
+            if (!selectedDoc) return showToast('Selecciona primero a un participante', 'error');
             populatePrintableReport();
             const sheetClone = document.getElementById('carnet-sheet').cloneNode(true);
             sheetClone.removeAttribute('id');
@@ -2038,12 +2528,11 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
         }
 
         async function triggerPrintCarnet() {
-            if (!selectedDoc) return showToast('Selecciona primero a un docente', 'error');
+            if (!selectedDoc) return showToast('Selecciona primero a un participante', 'error');
             closePreviewModal();
 
-            // Solo sincronizar #s7-notes si estamos activamente en el Stand 7
             if (currentStation === 'stand-7') {
-                const liveNotes = document.getElementById('s7-notes')?.value.trim();
+                const liveNotes = cleanPlainText(document.getElementById('s7-notes')?.value);
                 if (liveNotes && liveNotes !== selectedDoc.observaciones_finales) {
                     selectedDoc.observaciones_finales = liveNotes;
                     if (supabaseClient) {
@@ -2063,7 +2552,191 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
             setTimeout(() => window.print(), 180);
         }
 
-        // --- 12. DASHBOARD, EDICIÓN, ELIMINACIÓN Y EXPORTACIÓN CSV ---
+        // --- 13. DASHBOARD, GRÁFICOS ESTADÍSTICOS, EDICIÓN, ELIMINACIÓN Y EXCEL ---
+        function checkPatientAlert(p) {
+            const glucType = p.tipo_toma || 'ayunas';
+            return (
+                (hasVal(p.temperatura) && (p.temperatura < 35.5 || p.temperatura >= 37.6)) ||
+                (hasVal(p.oximetria) && p.oximetria < 95) ||
+                (hasVal(p.frecuencia_cardiaca) && (p.frecuencia_cardiaca < 60 || p.frecuencia_cardiaca > 100)) ||
+                (hasVal(p.imc) && (p.imc < 18.5 || p.imc >= 25)) ||
+                (hasVal(p.presion_sistolica) && hasVal(p.presion_diastolica) && (p.presion_sistolica >= 120 || p.presion_diastolica >= 80 || p.presion_sistolica < 90 || p.presion_diastolica < 60)) ||
+                (hasVal(p.glucometria) && ((glucType === 'ayunas' && p.glucometria >= 100) || p.glucometria >= 140 || p.glucometria < 70))
+            );
+        }
+
+        function renderDashboardCharts(forceRedraw = false) {
+            if (typeof Chart === 'undefined') return;
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#cbd5e1' : '#475569';
+            const gridColor = isDark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(148, 163, 184, 0.25)';
+
+            // 1. Datos de IMC
+            const imcCounts = { bajo: 0, normal: 0, sobrepeso: 0, obesidad: 0, pendiente: 0 };
+            // 2. Datos de Presión Arterial
+            const bpCounts = { normal: 0, elevada: 0, hta1: 0, hta2: 0, hipo: 0 };
+            // 3. Datos por Estamento (Inscritos vs Alertas)
+            const roleStats = {};
+
+            patients.forEach(p => {
+                // Conteo IMC
+                if (!hasVal(p.imc)) {
+                    imcCounts.pendiente++;
+                } else if (p.imc < 18.5) {
+                    imcCounts.bajo++;
+                } else if (p.imc < 25) {
+                    imcCounts.normal++;
+                } else if (p.imc < 30) {
+                    imcCounts.sobrepeso++;
+                } else {
+                    imcCounts.obesidad++;
+                }
+
+                // Conteo Presión Arterial
+                if (hasVal(p.presion_sistolica) && hasVal(p.presion_diastolica)) {
+                    const sys = p.presion_sistolica;
+                    const dia = p.presion_diastolica;
+                    if (sys >= 140 || dia >= 90) bpCounts.hta2++;
+                    else if ((sys >= 130 && sys <= 139) || (dia >= 80 && dia <= 89)) bpCounts.hta1++;
+                    else if (sys >= 120 && sys <= 129 && dia < 80) bpCounts.elevada++;
+                    else if (sys < 90 || dia < 60) bpCounts.hipo++;
+                    else bpCounts.normal++;
+                }
+
+                // Conteo por Rol
+                const role = p.area || 'Otro';
+                if (!roleStats[role]) roleStats[role] = { total: 0, alerts: 0 };
+                roleStats[role].total++;
+                if (checkPatientAlert(p)) roleStats[role].alerts++;
+            });
+
+            // Verificar si los datos o el tema cambiaron antes de reconstruir los gráficos
+            const currentSignature = JSON.stringify({ isDark, imcCounts, bpCounts, roleStats });
+            if (!forceRedraw && currentSignature === lastChartsSignature && chartIMCInstance && chartBPInstance && chartRolesInstance) {
+                return;
+            }
+            const isFirstRender = !lastChartsSignature;
+            lastChartsSignature = currentSignature;
+
+            // Renderizar Gráfico 1: Dona de IMC
+            const ctxImc = document.getElementById('chart-imc');
+            if (ctxImc) {
+                if (chartIMCInstance) chartIMCInstance.destroy();
+                chartIMCInstance = new Chart(ctxImc, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Peso Saludable', 'Sobrepeso', 'Obesidad', 'Bajo Peso', 'Pendiente'],
+                        datasets: [{
+                            data: [imcCounts.normal, imcCounts.sobrepeso, imcCounts.obesidad, imcCounts.bajo, imcCounts.pendiente],
+                            backgroundColor: ['#10b981', '#f59e0b', '#f43f5e', '#38bdf8', '#64748b'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: isFirstRender ? { duration: 500 } : false,
+                        cutout: '62%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: textColor, boxWidth: 10, font: { size: 10, family: 'Inter' } }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Renderizar Gráfico 2: Barras de Presión Arterial (AHA)
+            const ctxBp = document.getElementById('chart-bp');
+            if (ctxBp) {
+                if (chartBPInstance) chartBPInstance.destroy();
+                chartBPInstance = new Chart(ctxBp, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Normal', 'Elevada', 'HTA G1', 'HTA G2+', 'Hipotens.'],
+                        datasets: [{
+                            label: 'Participantes',
+                            data: [bpCounts.normal, bpCounts.elevada, bpCounts.hta1, bpCounts.hta2, bpCounts.hipo],
+                            backgroundColor: ['#10b981', '#f59e0b', '#fb923c', '#f43f5e', '#38bdf8'],
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: isFirstRender ? { duration: 500 } : false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: textColor, font: { size: 10 } },
+                                grid: { display: false }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: textColor, stepSize: 1, font: { size: 10 } },
+                                grid: { color: gridColor }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Renderizar Gráfico 3: Inscritos vs Alertas por Estamento
+            const ctxRoles = document.getElementById('chart-roles');
+            if (ctxRoles) {
+                if (chartRolesInstance) chartRolesInstance.destroy();
+                const roleLabels = Object.keys(roleStats).length > 0 ? Object.keys(roleStats) : ['Sin datos'];
+                const shortenLabel = (lbl) => lbl.length > 12 ? lbl.slice(0, 11) + '…' : lbl;
+
+                chartRolesInstance = new Chart(ctxRoles, {
+                    type: 'bar',
+                    data: {
+                        labels: roleLabels.map(shortenLabel),
+                        datasets: [
+                            {
+                                label: 'Inscritos',
+                                data: roleLabels.map(r => roleStats[r]?.total || 0),
+                                backgroundColor: '#3b82f6',
+                                borderRadius: 5
+                            },
+                            {
+                                label: 'Con Alerta',
+                                data: roleLabels.map(r => roleStats[r]?.alerts || 0),
+                                backgroundColor: '#f43f5e',
+                                borderRadius: 5
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: isFirstRender ? { duration: 500 } : false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: textColor, boxWidth: 10, font: { size: 10, family: 'Inter' } }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: textColor, font: { size: 10 } },
+                                grid: { display: false }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: textColor, stepSize: 1, font: { size: 10 } },
+                                grid: { color: gridColor }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
         function renderDashboardMetrics() {
             const total = patients.length;
             let completed = 0;
@@ -2071,14 +2744,7 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
 
             patients.forEach(p => {
                 if (countCompletedStands(p) === 5) completed++;
-                const hasAlert =
-                    (hasVal(p.temperatura) && (p.temperatura < 35.5 || p.temperatura >= 37.6)) ||
-                    (hasVal(p.oximetria) && p.oximetria < 95) ||
-                    (hasVal(p.frecuencia_cardiaca) && (p.frecuencia_cardiaca < 60 || p.frecuencia_cardiaca > 100)) ||
-                    (hasVal(p.imc) && (p.imc < 18.5 || p.imc >= 25)) ||
-                    (hasVal(p.presion_sistolica) && (p.presion_sistolica >= 120 || p.presion_diastolica >= 80 || p.presion_sistolica < 90 || p.presion_diastolica < 60)) ||
-                    (hasVal(p.glucometria) && ((p.tipo_toma === 'ayunas' && p.glucometria >= 100) || p.glucometria >= 140 || p.glucometria < 70));
-                if (hasAlert) alerts++;
+                if (checkPatientAlert(p)) alerts++;
             });
 
             document.getElementById('dash-total').textContent = total;
@@ -2086,11 +2752,13 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
             document.getElementById('dash-inprogress').textContent = total - completed;
             document.getElementById('dash-alerts').textContent = alerts;
 
+            renderDashboardCharts(false);
+
             const tbody = document.getElementById('dash-table-body');
             if (!tbody) return;
 
             if (patients.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">Aún no hay docentes registrados en la jornada.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">Aún no hay participantes registrados en la jornada.</td></tr>`;
                 return;
             }
 
@@ -2100,19 +2768,22 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
                 <tr class="hover:bg-slate-50 dark:hover:bg-navy-850/60 transition">
                     <td class="py-3 px-4">
                         <div class="font-bold text-slate-900 dark:text-white">${escapeHTML(p.nombre_docente)}</div>
-                        <div class="text-xs text-slate-500">C.C. ${safeDocAttr} • ${escapeHTML(p.edad)}a ${p.area ? '• ' + escapeHTML(p.area) : ''}</div>
+                        <div class="text-xs text-slate-500">Doc. ${safeDocAttr} • ${escapeHTML(p.edad)}a ${p.area ? '• <span class="font-semibold text-emerald-500">' + escapeHTML(p.area) + '</span>' : ''}</div>
                     </td>
                     <td class="py-3 px-3 text-xs font-semibold whitespace-nowrap">${hasVal(p.temperatura) ? escapeHTML(p.temperatura) + ' °C' : '<span class="text-slate-400">--</span>'}</td>
                     <td class="py-3 px-3 text-xs font-semibold whitespace-nowrap">${hasVal(p.oximetria) ? `${escapeHTML(p.oximetria)}% / ${escapeHTML(p.frecuencia_cardiaca ?? '--')} LPM` : '<span class="text-slate-400">--</span>'}</td>
                     <td class="py-3 px-3 text-xs font-semibold whitespace-nowrap">${hasVal(p.imc) ? escapeHTML(p.imc) : '<span class="text-slate-400">--</span>'}</td>
-                    <td class="py-3 px-3 text-xs font-semibold whitespace-nowrap">${hasVal(p.presion_sistolica) ? `${escapeHTML(p.presion_sistolica)}/${escapeHTML(p.presion_diastolica)}` : '<span class="text-slate-400">--</span>'}</td>
+                    <td class="py-3 px-3 text-xs font-semibold whitespace-nowrap">${(hasVal(p.presion_sistolica) && hasVal(p.presion_diastolica)) ? `${escapeHTML(p.presion_sistolica)}/${escapeHTML(p.presion_diastolica)}` : '<span class="text-slate-400">--</span>'}</td>
                     <td class="py-3 px-3 text-xs font-semibold whitespace-nowrap">${hasVal(p.glucometria) ? `${escapeHTML(p.glucometria)} mg/dL` : '<span class="text-slate-400">--</span>'}</td>
                     <td class="py-3 px-4 text-right whitespace-nowrap">
                         <div class="inline-flex items-center justify-end gap-1.5">
+                            <button type="button" data-doc="${safeDocAttr}" onclick="openWhatsAppModal(this.dataset.doc)" title="Enviar resultados por WhatsApp" class="p-1.5 px-2.5 rounded-lg text-xs font-bold bg-[#25D366]/15 text-[#25D366] hover:bg-[#25D366] hover:text-white transition cursor-pointer">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </button>
                             <button type="button" data-doc="${safeDocAttr}" onclick="openCarnetFromDashboard(this.dataset.doc)" title="Ver e imprimir Carnet" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600/15 text-emerald-500 hover:bg-emerald-600 hover:text-white transition cursor-pointer">
                                 <i class="fa-solid fa-print sm:mr-1"></i><span class="hidden sm:inline">Carnet</span>
                             </button>
-                            <button type="button" data-doc="${safeDocAttr}" onclick="openEditPatientModal(this.dataset.doc)" title="Editar datos del docente" class="p-1.5 px-2.5 rounded-lg text-xs font-bold bg-blue-500/15 text-blue-500 hover:bg-blue-600 hover:text-white transition cursor-pointer">
+                            <button type="button" data-doc="${safeDocAttr}" onclick="openEditPatientModal(this.dataset.doc)" title="Editar datos del participante" class="p-1.5 px-2.5 rounded-lg text-xs font-bold bg-blue-500/15 text-blue-500 hover:bg-blue-600 hover:text-white transition cursor-pointer">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
                             <button type="button" data-doc="${safeDocAttr}" onclick="openDeletePatientModal(this.dataset.doc)" title="Eliminar registro" class="p-1.5 px-2.5 rounded-lg text-xs font-bold bg-rose-500/15 text-rose-500 hover:bg-rose-600 hover:text-white transition cursor-pointer">
@@ -2130,16 +2801,39 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
         }
 
         // --- FUNCIONES DE EDICIÓN EN EL DASHBOARD ---
+        const DEFAULT_ROLES = [
+            'Docente',
+            'Estudiante',
+            'Directivo / Coordinador',
+            'Administrativo',
+            'Servicios Generales',
+            'Padre / Madre de Familia',
+            'Visitante / Invitado'
+        ];
+
         function openEditPatientModal(docNumber) {
             const p = patients.find(item => item.documento === docNumber);
-            if (!p) return showToast('No se encontró el registro del docente', 'error');
+            if (!p) return showToast('No se encontró el registro del participante', 'error');
 
             document.getElementById('edit-original-doc').value = p.documento;
             document.getElementById('edit-doc').value = p.documento || '';
             document.getElementById('edit-name').value = p.nombre_docente || '';
             document.getElementById('edit-age').value = p.edad ?? '';
             document.getElementById('edit-gender').value = p.sexo || 'Femenino';
-            document.getElementById('edit-area').value = p.area || '';
+
+            const areaSelect = document.getElementById('edit-area');
+            if (areaSelect) {
+                areaSelect.innerHTML = DEFAULT_ROLES.map(r => `<option value="${escapeHTML(r)}">${escapeHTML(r)}</option>`).join('');
+                const currentArea = p.area || 'Docente';
+                if (!DEFAULT_ROLES.includes(currentArea)) {
+                    const customOpt = document.createElement('option');
+                    customOpt.value = currentArea;
+                    customOpt.textContent = currentArea;
+                    areaSelect.appendChild(customOpt);
+                }
+                areaSelect.value = currentArea;
+            }
+
             document.getElementById('edit-smoking').value = p.tabaquismo || 'No fuma';
             document.getElementById('edit-activity').value = p.actividad_fisica || 'Sedentario (< 150 min/sem)';
             document.getElementById('edit-history').value = p.antecedente_previo || 'Ninguno conocido';
@@ -2166,11 +2860,11 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
             const history = document.getElementById('edit-history').value;
 
             if (!newDoc || !name || isNaN(age)) {
-                return showToast('Verifica cédula, nombre y edad', 'error');
+                return showToast('Verifica documento, nombre y edad', 'error');
             }
 
             if (newDoc !== originalDoc && patients.some(p => p.documento === newDoc)) {
-                return showToast(`Ya existe otro docente con el documento ${newDoc}`, 'error');
+                return showToast(`Ya existe otro participante con el documento ${newDoc}`, 'error');
             }
 
             const btn = document.getElementById('btn-save-edit');
@@ -2182,7 +2876,7 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
                     nombre_docente: name,
                     edad: age,
                     sexo: gender,
-                    area: area || null,
+                    area: area || 'Participante',
                     tabaquismo: smoking,
                     actividad_fisica: activity,
                     antecedente_previo: history
@@ -2198,7 +2892,6 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
 
                 if (data && data[0]) {
                     const updatedRecord = data[0];
-                    // Eliminar posibles duplicados si el evento Realtime llegó milisegundos antes
                     patients = patients.filter(p => p.documento !== originalDoc && p.documento !== newDoc && (!p.id || p.id !== updatedRecord.id));
                     patients.unshift(updatedRecord);
 
@@ -2226,7 +2919,7 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
 
             pendingDeleteDoc = p.documento;
             document.getElementById('delete-patient-name').textContent = p.nombre_docente;
-            document.getElementById('delete-patient-doc').textContent = `Documento C.C. ${p.documento} • ${p.edad} años`;
+            document.getElementById('delete-patient-doc').textContent = `Documento ${p.documento} • ${p.edad} años ${p.area ? '• ' + p.area : ''}`;
             document.getElementById('modal-delete-patient')?.classList.remove('hidden');
         }
 
@@ -2272,11 +2965,67 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
             return `"${str}"`;
         }
 
-        function downloadCSVExport() {
+        function downloadExcelExport() {
             if (patients.length === 0) return showToast('No hay registros para exportar', 'info');
 
+            const fileDate = new Date().toISOString().slice(0, 10);
+
+            if (typeof XLSX !== 'undefined') {
+                try {
+                    const excelRows = patients.map((p, idx) => ({
+                        'N°': idx + 1,
+                        'Documento': p.documento || '',
+                        'Nombre del Participante': p.nombre_docente || '',
+                        'Edad (Años)': hasVal(p.edad) ? Number(p.edad) : null,
+                        'Sexo Biológico': p.sexo || '',
+                        'Estamento / Rol': p.area || '',
+                        'Hábito Tabáquico': p.tabaquismo || '',
+                        'Actividad Física': p.actividad_fisica || '',
+                        'Antecedentes': p.antecedente_previo || '',
+                        'Temperatura (°C)': hasVal(p.temperatura) ? Number(p.temperatura) : null,
+                        'Estado Temperatura': p.estado_temperatura || 'Pendiente',
+                        'Oximetría SpO2 (%)': hasVal(p.oximetria) ? Number(p.oximetria) : null,
+                        'Estado Oxígeno': p.estado_oxigeno || 'Pendiente',
+                        'Frecuencia Cardíaca (LPM)': hasVal(p.frecuencia_cardiaca) ? Number(p.frecuencia_cardiaca) : null,
+                        'Estado Pulso': p.estado_pulso || 'Pendiente',
+                        'Peso (kg)': hasVal(p.peso) ? Number(p.peso) : null,
+                        'Estatura (cm)': hasVal(p.altura) ? Number(p.altura) : null,
+                        'IMC (kg/m²)': hasVal(p.imc) ? Number(p.imc) : null,
+                        'Clasificación IMC': p.estado_imc || 'Pendiente',
+                        'Presión Sistólica (mmHg)': hasVal(p.presion_sistolica) ? Number(p.presion_sistolica) : null,
+                        'Presión Diastólica (mmHg)': hasVal(p.presion_diastolica) ? Number(p.presion_diastolica) : null,
+                        'Estado Presión Arterial': p.estado_presion || 'Pendiente',
+                        'Glucometría (mg/dL)': hasVal(p.glucometria) ? Number(p.glucometria) : null,
+                        'Condición Toma': p.tipo_toma || '',
+                        'Estado Glucometría': p.estado_glucometria || 'Pendiente',
+                        'Exámenes Completados': `${countCompletedStands(p)}/5`,
+                        'Observaciones / Diagnóstico IA': p.observaciones_finales || ''
+                    }));
+
+                    const worksheet = XLSX.utils.json_to_sheet(excelRows);
+
+                    const colWidths = Object.keys(excelRows[0]).map(key => {
+                        const maxCellLen = excelRows.reduce((max, row) => {
+                            const valStr = row[key] !== null && row[key] !== undefined ? String(row[key]) : '';
+                            return Math.max(max, valStr.length);
+                        }, key.length);
+                        return { wch: Math.min(Math.max(maxCellLen + 3, 12), 55) };
+                    });
+                    worksheet['!cols'] = colWidths;
+
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, 'Tamizaje PromoHealth');
+
+                    XLSX.writeFile(workbook, `PromoHealth_Reporte_${fileDate}.xlsx`);
+                    showToast('Archivo Excel (.xlsx) descargado con éxito', 'success');
+                    return;
+                } catch (err) {
+                    console.error('Error generando .xlsx, usando respaldo CSV:', err);
+                }
+            }
+
             const headers = [
-                'Documento', 'Nombre Docente', 'Edad', 'Sexo', 'Area',
+                'Documento', 'Nombre Participante', 'Edad', 'Sexo', 'Estamento / Rol',
                 'Tabaquismo', 'Actividad Fisica', 'Antecedentes',
                 'Temperatura (C)', 'Estado Temperatura',
                 'SpO2 (%)', 'Frecuencia Cardiaca (LPM)',
@@ -2300,12 +3049,12 @@ Indica si requiere control regular o valoración prioritaria en su EPS.`;
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `promohealth_reporte_${new Date().toISOString().slice(0, 10)}.csv`;
+            link.download = `PromoHealth_Reporte_${fileDate}.csv`;
             link.click();
             URL.revokeObjectURL(url);
         }
 
-        // --- 13. NOTIFICACIONES TOAST ---
+        // --- 14. NOTIFICACIONES TOAST ---
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             if (!container) return;
